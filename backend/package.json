@@ -4,8 +4,14 @@
   "description": "",
   "main": "server.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
-    "start": "node server.js"
+    "test": "node --test",
+    "db:migrate": "node scripts/db-cli.js migrate",
+    "db:seed": "node scripts/db-cli.js seed",
+    "db:check": "node scripts/db-cli.js check",
+    "db:postgres:check": "node scripts/postgres-check.js",
+    "db:reset": "node scripts/db-cli.js reset",
+    "start": "node server.js",
+    "start:dev": "node server.js"
   },
   "keywords": [],
   "author": "",
@@ -13,6 +19,10 @@
   "type": "commonjs",
   "dependencies": {
     "cors": "^2.8.6",
-    "express": "^5.2.1"
+    "dotenv": "^18.0.0",
+    "pg": "^8.16.3",
+    "express": "^5.2.1",
+    "swagger-ui-express": "^5.0.1",
+    "yaml": "^2.9.1"
   }
 }

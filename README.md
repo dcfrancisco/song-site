@@ -1,94 +1,138 @@
-# ArtPortfolio
+# Song Site
 
-This project was generated using [Angular CLI](https://github.com/angular/angular-cli) version 21.2.7.
+Song Site is an Angular frontend with an Express backend for the ATCP Song Bench experience.
 
-## New Developer Checklist (`feat/sso`)
+- `src/`: Angular 21 standalone application.
+- `backend/`: Express 5 API and database repository.
+- `docs/`: OpenAPI contract, architecture decisions, work packages, and runbooks.
 
-Follow these steps when setting up the SSO branch on your local machine.
+## Prerequisites
 
-1. Checkout the branch:
+- Node.js 22 or newer.
+- npm 11 or compatible npm version.
+- Local identity configuration when working on SSO.
 
-```bash
-git checkout main
-```
+Do not commit `.env`, database files, credentials, tokens, or identity secrets.
 
-2. Install dependencies (use legacy peer dependency resolution):
+## First-time setup
 
-```bash
+From the repository root in PowerShell:
+
+```powershell
 npm install --legacy-peer-deps
+Copy-Item .env.example .env
 ```
 
-3. Create a local `.env` file in the project root:
+On macOS/Linux, use `cp .env.example .env` instead of `Copy-Item`.
+
+Set local values in `.env`, especially:
 
 ```env
-# SSO-LOCAL
+VITE_API_BASE_URL=http://localhost:5001/api
 VITE_AZURE_REDIRECT_URI=http://localhost:4200/
-VITE_ENTRA_CLIENT_ID=8b6a9386-67b2-4d05-9966-6f20a67713f8
-VITE_ENTRA_TENANT_ID=b647a764-1b83-4076-8305-ff4ee0fbbcdf
+DB_DRIVER=sqlite
 ```
 
-4. Start the app:
+Keep real identity values local.
 
-```bash
+## Start the backend: Terminal 1
+
+```powershell
+cd backend
+npm install
+npm run db:migrate
+npm run db:check
 npm start
 ```
 
-Notes:
-- The `.env` file is local-only and should not be committed.
-- If port 4200 is already in use, run `npm start -- --port 4201` and update the redirect URI to match.
+Backend URL: `http://localhost:5001`
 
-## Development server
+Swagger UI: `http://localhost:5001/api-docs` when `NODE_ENV=development` and `SWAGGER_UI=true`.
 
-To start a local development server, run:
+## Start the frontend: Terminal 2
 
-```bash
-ng serve
+Open a second terminal at the repository root:
+
+```powershell
+npm start
 ```
 
-Once the server is running, open your browser and navigate to `http://localhost:4200/`. The application will automatically reload whenever you modify any of the source files.
+Open `http://localhost:4200`.
 
-## Code scaffolding
+If port 4200 is unavailable:
 
-Angular CLI includes powerful code scaffolding tools. To generate a new component, run:
-
-```bash
-ng generate component component-name
+```powershell
+npm start -- --port 4201
 ```
 
-For a complete list of available schematics (such as `components`, `directives`, or `pipes`), run:
+Update `VITE_AZURE_REDIRECT_URI` to match when testing SSO on another port.
 
-```bash
-ng generate --help
+## Useful checks
+
+From the repository root:
+
+```powershell
+npm run test:ci
+npm run build:ci
+npm run verify
 ```
 
-## Building
+From `backend/`:
 
-To build the project run:
-
-```bash
-ng build
+```powershell
+npm test
 ```
 
-This will compile your project and store the build artifacts in the `dist/` directory. By default, the production build optimizes your application for performance and speed.
+## Reset the local database
 
-## Running unit tests
+The reset command is destructive and local-only:
 
-To execute unit tests with the [Vitest](https://vitest.dev/) test runner, use the following command:
-
-```bash
-ng test
+```powershell
+cd backend
+npm run db:reset
+npm run db:migrate
 ```
 
-## Running end-to-end tests
+Use a disposable `DATABASE_PATH` when testing migrations. The migration files create the schema and populate the local compatibility data; no JSON seed directory is required.
 
-For end-to-end (e2e) testing, run:
+## API and database
 
-```bash
-ng e2e
-```
+- OpenAPI contract: [docs/openapi/song-site.yaml](docs/openapi/song-site.yaml)
+- Versioned migrations: `backend/migrations/`.
+- Current local database: SQLite through Node `node:sqlite`.
+- Production target: PostgreSQL, tracked under `WP-017`; PostgreSQL is not wired into the current backend yet.
+- Database selection is controlled by `DB_DRIVER` (`sqlite` by default). PostgreSQL can use either `DATABASE_URL` or explicit `PGHOST`, `PGPORT`, `PGDATABASE`, `PGUSER`, and `PGPASSWORD` settings; keep `PGPASSWORD` only in local `.env` or a secret manager.
+- Local structured data is populated by versioned migrations, including `backend/migrations/004-content-data.sql`; binary and unused frontend assets remain under `src/assets/`.
+- PostgreSQL connectivity check: from `backend/`, set `DATABASE_URL` locally and run `npm run db:postgres:check`; this only verifies `SELECT 1` and does not switch the API off SQLite.
 
-Angular CLI does not come with an end-to-end testing framework by default. You can choose one that suits your needs.
+The GitHub Pages workflow builds only the static frontend. It does not host the Express API, so deployed builds need an externally reachable `VITE_API_BASE_URL`.
 
-## Additional Resources
+## Team standards
 
-For more information on using the Angular CLI, including detailed command references, visit the [Angular CLI Overview and Command Reference](https://angular.dev/tools/cli) page.
+Read the shared contract before cross-cutting changes: [docs/ai/team-agent-contract.md](docs/ai/team-agent-contract.md).
+
+Also consult:
+
+- [Architecture decisions](docs/README.md)
+- [Work packages](docs/work-packages.md)
+- [Local development runbook](docs/runbooks/local-development.md)
+- [API and data inventory](docs/api-data-inventory.md)
+- [Navigation flows](docs/navigation-flows.md)
+
+Important rules:
+
+- API changes are OpenAPI-first.
+- Database changes are migration-backed.
+- Authorization is enforced by the backend, not only Angular navigation.
+- Keep ADR status, implementation status, and work-package status separate.
+- Preserve unrelated worktree changes.
+
+## Pull request checklist
+
+- [ ] Frontend and backend behavior are described separately.
+- [ ] OpenAPI is updated for API changes.
+- [ ] A versioned migration strategy exists for database changes.
+- [ ] Focused tests or smoke checks pass.
+- [ ] `git diff --check` passes.
+- [ ] Relevant documentation is updated.
+- [ ] No secrets or local database files are included.
