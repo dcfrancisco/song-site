@@ -35,14 +35,30 @@ DB_DRIVER=sqlite
 
 Keep real identity values local.
 
+## Initialize the local database
+
+From the repository root, run these commands before starting the backend:
+
+```powershell
+cd backend
+npm.cmd run db:migrate
+npm.cmd run db:seed
+npm.cmd run db:check
+```
+
+`db:migrate` creates the SQLite schema and applies all versioned migrations. The current content is populated by `004-content-data.sql`. `db:seed` is retained as a compatibility command; it does not read JSON files. `db:check` confirms the local database is available and reports the task counts.
+
+If PowerShell allows the `npm` command directly, `npm` may be used instead of `npm.cmd`.
+
 ## Start the backend: Terminal 1
 
 ```powershell
 cd backend
-npm install
-npm run db:migrate
-npm run db:check
-npm start
+npm.cmd install
+npm.cmd run db:migrate
+npm.cmd run db:seed
+npm.cmd run db:check
+npm.cmd start
 ```
 
 Backend URL: `http://localhost:5001`
