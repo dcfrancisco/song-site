@@ -30,7 +30,7 @@ export class AtcpSong implements OnInit {
       },
       error: (err) => {
         console.error('Failed to load leadership data:', err);
-        this.error.set('Could not load data. Please ensure the backend is running on port 5001.');
+        this.error.set('Could not load data. Please ensure the backend is configured and running.');
         this.loading.set(false);
       }
     });

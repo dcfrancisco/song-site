@@ -3,6 +3,10 @@
 .env
 .env.*
 !.env.example
+.local/
+*.sqlite
+*.sqlite3
+*.db
 
 # Dependencies
 node_modules/
@@ -15,6 +19,7 @@ out-tsc/
 # Coverage and reports
 coverage/
 .nyc_output/
+test-results/
 
 # Logs
 *.log

@@ -1,6 +1,7 @@
 import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
+import { API_BASE_URL } from '../api.config';
 
 export interface SpotlightPerson {
   id: number;
@@ -29,10 +30,10 @@ export class HomeService {
   private http = inject(HttpClient);
 
   getSpotlight(): Observable<SpotlightData> {
-    return this.http.get<SpotlightData>('http://localhost:5001/api/home/spotlight');
+    return this.http.get<SpotlightData>(`${API_BASE_URL}/home/spotlight`);
   }
 
   getAnnouncements(): Observable<Announcement[]> {
-    return this.http.get<Announcement[]>('http://localhost:5001/api/home/announcements');
+    return this.http.get<Announcement[]>(`${API_BASE_URL}/home/announcements`);
   }
 }

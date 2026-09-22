@@ -1,0 +1,442 @@
+openapi: 3.0.3
+info:
+  title: Song Site API
+  version: 0.1.0
+  description: OpenAPI-first contract for Journey and task workflows. Temporary mutation routes accept local development requests without a key; non-development deployments require the X-Admin-Key bridge until identity and RBAC are implemented.
+servers:
+  - url: http://localhost:5001
+    description: Local backend
+paths:
+  /api/tasks:
+    get:
+      operationId: listJourneyTasks
+      summary: List Journey tasks
+      responses:
+        '200':
+          description: Journey tasks
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Task'
+    post:
+      operationId: createJourneyTask
+      summary: Create a Journey task
+      security:
+        - temporaryAdminKey: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TaskUpdate'
+      responses:
+        '201':
+          description: Created task
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Task'
+  /api/tasks/{id}:
+    put:
+      operationId: updateJourneyTask
+      summary: Update a Journey task
+      security:
+        - temporaryAdminKey: []
+      parameters:
+        - $ref: '#/components/parameters/TaskId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TaskUpdate'
+      responses:
+        '200':
+          description: Updated task
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Task'
+        '404':
+          $ref: '#/components/responses/NotFound'
+  /api/tasks/{id}/status:
+    put:
+      operationId: updateJourneyTaskStatus
+      summary: Transition a Journey task status
+      security:
+        - temporaryAdminKey: []
+      parameters:
+        - $ref: '#/components/parameters/TaskId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/StatusAction'
+      responses:
+        '200':
+          description: Updated task
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Task'
+        '404':
+          $ref: '#/components/responses/NotFound'
+  /api/progress-status:
+    get:
+      operationId: getJourneyProgress
+      summary: Get Journey progress
+      responses:
+        '200':
+          description: Journey progress percentage
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Progress'
+  /api/training-tasks:
+    get:
+      operationId: listTrainingTasks
+      summary: List training tasks
+      responses:
+        '200':
+          description: Training tasks
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Task'
+    post:
+      operationId: createTrainingTask
+      summary: Create a training task
+      security:
+        - temporaryAdminKey: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TaskUpdate'
+      responses:
+        '201':
+          description: Created task
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Task'
+  /api/training-tasks/{id}:
+    put:
+      operationId: updateTrainingTask
+      summary: Update a training task
+      security:
+        - temporaryAdminKey: []
+      parameters:
+        - $ref: '#/components/parameters/TaskId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TaskUpdate'
+      responses:
+        '200':
+          description: Updated training task
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Task'
+        '404':
+          $ref: '#/components/responses/NotFound'
+  /api/training-tasks/{id}/status:
+    put:
+      operationId: updateTrainingTaskStatus
+      summary: Transition a training task status
+      security:
+        - temporaryAdminKey: []
+      parameters:
+        - $ref: '#/components/parameters/TaskId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/StatusAction'
+      responses:
+        '200':
+          description: Updated training task
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Task'
+        '404':
+          $ref: '#/components/responses/NotFound'
+  /api/training-progress-status:
+    get:
+      operationId: getTrainingProgress
+      summary: Get training progress
+      responses:
+        '200':
+          description: Training progress percentage
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Progress'
+  /api/leadership:
+    get:
+      operationId: getLeadership
+      summary: Get leadership content
+      responses:
+        '200':
+          description: Leadership content grouped by section
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties:
+                  type: array
+                  items:
+                    type: object
+  /api/journey/items:
+    get:
+      operationId: listJourneyItems
+      summary: List Journey items
+      responses:
+        '200':
+          description: Journey items
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/JourneyItem'
+  /api/journey/items/{id}:
+    put:
+      operationId: updateJourneyItem
+      summary: Temporarily update a Journey item
+      security:
+        - temporaryAdminKey: []
+      parameters:
+        - $ref: '#/components/parameters/TaskId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: true
+      responses:
+        '200':
+          description: Updated Journey item
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/JourneyItem'
+        '404':
+          $ref: '#/components/responses/NotFound'
+  /api/leadership/{section}/{id}:
+    put:
+      operationId: updateLeadershipItem
+      summary: Temporarily update a leadership item
+      security:
+        - temporaryAdminKey: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: true
+      responses:
+        '200': { description: Updated leadership item }
+        '404': { $ref: '#/components/responses/NotFound' }
+  /api/home/spotlight:
+    get:
+      operationId: getHomeSpotlight
+      summary: Get home spotlight content
+      responses:
+        '200':
+          description: Home spotlight
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HomeSpotlight'
+    put:
+      operationId: updateHomeSpotlight
+      summary: Temporarily update home spotlight content
+      security:
+        - temporaryAdminKey: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/HomeSpotlight'
+      responses:
+        '200': { description: Updated home spotlight }
+  /api/home/announcements:
+    get:
+      operationId: getHomeAnnouncements
+      summary: Get home announcements
+      responses:
+        '200':
+          description: Home announcements
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Announcement'
+  /api/home/announcements/{id}:
+    put:
+      operationId: updateAnnouncement
+      summary: Temporarily update a home announcement
+      security:
+        - temporaryAdminKey: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Announcement'
+      responses:
+        '200': { description: Updated announcement }
+        '404': { $ref: '#/components/responses/NotFound' }
+  /api/song-links:
+    get:
+      operationId: getSongLinks
+      summary: Get grouped Song links
+      responses:
+        '200':
+          description: Grouped Song links
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  required: [title, cards]
+                  properties:
+                    title: { type: string }
+                    cards:
+                      type: array
+                      items:
+                        type: object
+                        additionalProperties: true
+  /api/song-links/{sectionId}/{cardId}:
+    put:
+      operationId: updateSongLink
+      summary: Temporarily update a Song Link card
+      security:
+        - temporaryAdminKey: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: true
+      responses:
+        '200': { description: Updated Song Link card }
+        '404': { $ref: '#/components/responses/NotFound' }
+components:
+  securitySchemes:
+    temporaryAdminKey:
+      type: apiKey
+      in: header
+      name: X-Admin-Key
+      description: Temporary bridge only. Replace with identity-backed authorization before production use.
+  parameters:
+    TaskId:
+      name: id
+      in: path
+      required: true
+      schema:
+        type: integer
+        format: int64
+  responses:
+    NotFound:
+      description: Resource not found
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+  schemas:
+    Task:
+      type: object
+      required: [id, title, status, progress]
+      properties:
+        id: { type: integer, format: int64 }
+        title: { type: string }
+        startDate: { type: string }
+        endDate: { type: string }
+        status:
+          type: string
+          enum: [Not Started, Pending, In Progress, Blocked, Completed]
+        progress: { type: number, minimum: 0, maximum: 100 }
+        url: { type: string }
+        startedAt: { type: string, format: date-time }
+        completedAt: { type: string, format: date-time }
+        actualDuration: { type: string }
+        description: { type: string }
+        externalLinks:
+          type: array
+          items:
+            type: object
+            required: [text, url]
+            properties:
+              text: { type: string }
+              url: { type: string, format: uri }
+    JourneyItem:
+      type: object
+      required: [id, label, route, text, status]
+      properties:
+        id: { type: integer, format: int64 }
+        label: { type: string }
+        route: { type: string }
+        text: { type: string }
+        image: { type: string }
+        status: { type: string }
+        startDate: { type: string }
+        endDate: { type: string }
+        lastUpdated: { type: string }
+        isExpanded: { type: boolean }
+    TaskUpdate:
+      type: object
+      additionalProperties: true
+    StatusAction:
+      type: object
+      required: [action]
+      properties:
+        action:
+          type: string
+          enum: [start, complete]
+    Progress:
+      type: object
+      required: [progress]
+      properties:
+        progress: { type: integer, minimum: 0, maximum: 100 }
+    HomeSpotlight:
+      type: object
+      required: [title, persons]
+      properties:
+        title: { type: string }
+        persons:
+          type: array
+          items:
+            type: object
+            additionalProperties: true
+    Announcement:
+      type: object
+      required: [id, icon, title, body]
+      properties:
+        id: { type: integer }
+        icon: { type: string }
+        title: { type: string }
+        body: { type: string }
+    Error:
+      type: object
+      required: [error]
+      properties:
+        error: { type: string }
