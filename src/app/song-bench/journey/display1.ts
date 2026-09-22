@@ -2,6 +2,7 @@ import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule, Router } from '@angular/router';
 import { HttpClient } from '@angular/common/http';
+import { API_BASE_URL } from '../../api.config';
 
 interface Item {
   label: string;
@@ -31,6 +32,8 @@ interface Item {
   styleUrls: ['./display1.css'],
 })
 export class Display1Component implements OnInit {
+
+  private readonly journeyItemsUrl = `${API_BASE_URL}/journey/items`;
 
   constructor(private http: HttpClient, private router: Router)  {}
 
@@ -65,25 +68,24 @@ export class Display1Component implements OnInit {
   ];
 
 ngOnInit() {
- const saved = localStorage.getItem('items');
- if (saved) {
-   this.items = this.normalizeRoutes(JSON.parse(saved));
-   this.syncWorkdayStatus();
- } else {
-   this.http.get<Item[]>('assets/data/items.json')
-     .subscribe(data => {
-       this.items = this.normalizeRoutes(data.map(item => ({
-         ...item,
-         isExpanded: false,
-         highlightCurrentClick: false,
-         highlightTopDuePrevClick: false,
-         highlightCurrentHover: false,
-         highlightTopDuePrevHover: false
-       })));
-       this.syncWorkdayStatus();
-       localStorage.setItem('items', JSON.stringify(this.items));
-     });
- }
+ this.http.get<Item[]>(this.journeyItemsUrl).subscribe({
+   next: data => {
+     this.items = this.normalizeRoutes(data.map(item => ({
+       ...item,
+       isExpanded: false,
+       highlightCurrentClick: false,
+       highlightTopDuePrevClick: false,
+       highlightCurrentHover: false,
+       highlightTopDuePrevHover: false
+     })));
+     this.syncWorkdayStatus();
+     localStorage.setItem('items', JSON.stringify(this.items));
+   },
+   error: () => {
+     const saved = localStorage.getItem('items');
+     if (saved) this.items = this.normalizeRoutes(JSON.parse(saved));
+   }
+ });
 }
 
 private syncWorkdayStatus(): void {
