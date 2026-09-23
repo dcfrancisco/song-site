@@ -114,6 +114,14 @@ CREATE TABLE IF NOT EXISTS leadership_members (
 CREATE INDEX IF NOT EXISTS idx_leadership_members_section
   ON leadership_members (section, category, subcategory, sort_order);
 
+-- Compatibility payloads for hierarchical leadership content such as the org chart.
+CREATE TABLE IF NOT EXISTS leadership_sections (
+  section_name VARCHAR(80) NOT NULL,
+  item_id BIGINT NOT NULL,
+  payload JSONB NOT NULL,
+  PRIMARY KEY (section_name, item_id)
+);
+
 CREATE TABLE IF NOT EXISTS song_link_groups (
   id BIGSERIAL PRIMARY KEY,
   title VARCHAR(255) NOT NULL,

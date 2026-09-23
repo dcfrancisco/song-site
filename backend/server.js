@@ -47,6 +47,17 @@ function requireStatusAction(req, res, next) {
   next();
 }
 
+function requireOrgChartNode(req, res, next) {
+  const { name, role, parentId } = req.body;
+  if (typeof name !== "string" || !name.trim() || typeof role !== "string" || !role.trim()) {
+    return res.status(400).json({ error: "Org-chart nodes require name and role" });
+  }
+  if (parentId !== undefined && parentId !== null && !Number.isInteger(Number(parentId))) {
+    return res.status(400).json({ error: "parentId must be an integer or null" });
+  }
+  next();
+}
+
 const swaggerEnabled = process.env.NODE_ENV === "development" && process.env.SWAGGER_UI === "true";
 if (swaggerEnabled) {
   const openApiPath = path.join(__dirname, "..", "docs", "openapi", "song-site.yaml");
@@ -129,6 +140,30 @@ app.get("/api/leadership", async (req, res, next) => {
   try { res.json(await database.getLeadership()); } catch (error) { next(error); }
 });
 
+app.get("/api/leadership/orgchart", async (req, res, next) => {
+  try { res.json(await database.getLeadershipOrgChart()); } catch (error) { next(error); }
+});
+
+app.post("/api/leadership/orgchart", requireTemporaryContentWriteAccess, requireObjectBody, requireOrgChartNode, async (req, res, next) => {
+  try { res.status(201).json(await database.createLeadershipOrgChartNode(req.body)); } catch (error) { next(error); }
+});
+
+app.put("/api/leadership/orgchart/:id", requireTemporaryContentWriteAccess, requireObjectBody, requireNumericParams("id"), requireOrgChartNode, async (req, res, next) => {
+  try {
+    const node = await database.updateLeadershipOrgChartNode(Number(req.params.id), req.body);
+    if (!node) return res.status(404).json({ error: "Org-chart node not found" });
+    res.json(node);
+  } catch (error) { next(error); }
+});
+
+app.delete("/api/leadership/orgchart/:id", requireTemporaryContentWriteAccess, requireNumericParams("id"), async (req, res, next) => {
+  try {
+    const deleted = await database.deleteLeadershipOrgChartNode(Number(req.params.id));
+    if (!deleted) return res.status(404).json({ error: "Org-chart node not found" });
+    res.status(204).end();
+  } catch (error) { next(error); }
+});
+
 app.put("/api/leadership/:section/:id", requireTemporaryContentWriteAccess, requireObjectBody, requireNumericParams("id"), async (req, res, next) => {
   try {
   const updated = await database.updateLeadershipItem(req.params.section, Number(req.params.id), req.body);
@@ -173,4 +208,8 @@ app.put("/api/song-links/:sectionId/:cardId", requireTemporaryContentWriteAccess
   } catch (error) { next(error); }
 });
 
-app.listen(PORT, () => console.log(`Server running at http://localhost:${PORT}`));
+if (require.main === module) {
+  app.listen(PORT, () => console.log(`Server running at http://localhost:${PORT}`));
+}
+
+module.exports = { app, database };

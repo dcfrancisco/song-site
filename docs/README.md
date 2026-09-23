@@ -30,6 +30,9 @@ This directory contains architecture decision records (ADRs), API contracts, and
 - [ADR-0024: Legacy JSON data and database source of truth](adr/0024-legacy-json-data-to-database-source-of-truth.md) - Proposed for project-owner review
 - [ADR-0025: Structured data and binary storage](adr/0025-structured-data-and-binary-storage.md) - Proposed for project-owner review
 - [ADR-0026: PostgreSQL connection setup](adr/0026-postgresql-connection-setup.md) - Accepted for connection setup; adapter and migration parity pending
+- [ADR-0027: Leadership Organizational Chart](adr/0027-leadership-orgchart.md) - Proposed for project-owner review
+- [ADR-0028: PostgreSQL Compatibility, Test Layers, and CI Gates](adr/0028-database-test-and-ci-strategy.md) - Proposed for project-owner review
+- [ADR-0029: SSO-Compatible Leadership RBAC and Guest Navigation](adr/0029-sso-compatible-leadership-rbac.md) - Proposed for project-owner review
 
 ## Ownership
 
