@@ -3,10 +3,6 @@ const path = require("path");
 const { DatabaseSync } = require("node:sqlite");
 const config = require("./config");
 
-if (config.databaseDriver === "postgres") {
-  throw new Error("DB_DRIVER=postgres is configured, but the PostgreSQL repository adapter is not implemented yet");
-}
-
 const databasePath = config.databasePath;
 const migrationsPath = path.join(__dirname, "migrations");
 

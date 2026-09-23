@@ -18,7 +18,7 @@ export class TrainingTaskService {
     return this.http.get<{ progress: number }>(`${API_BASE_URL}/training-progress-status`);
   }
 
-  updateTaskStatus(id: number, action: 'start' | 'complete') {
+  updateTaskStatus(id: number, action: 'start' | 'complete'): Observable<TrainingTask> {
     return this.http.put<TrainingTask>(`${API_BASE_URL}/training-tasks/${id}/status`, { action });
   }
 }

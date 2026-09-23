@@ -5,7 +5,10 @@ const cors = require("cors");
 const swaggerUi = require("swagger-ui-express");
 const YAML = require("yaml");
 const fs = require("fs");
-const database = require("./database");
+const config = require("./config");
+const database = config.databaseDriver === "postgres"
+  ? require("./postgres-database")
+  : require("./database");
 const app = express();
 const PORT = Number(process.env.PORT || 5001);
 
@@ -51,107 +54,123 @@ if (swaggerEnabled) {
   app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(openApiDocument));
 }
 
-app.get("/api/tasks", (req, res) => {
-  res.json(database.getTasks("tasks"));
+app.get("/api/tasks", async (req, res, next) => {
+  try { res.json(await database.getTasks("tasks")); } catch (error) { next(error); }
 });
 
-app.post("/api/tasks", requireTemporaryContentWriteAccess, requireObjectBody, (req, res) => {
-  res.status(201).json(database.createTask("tasks", req.body));
+app.post("/api/tasks", requireTemporaryContentWriteAccess, requireObjectBody, async (req, res, next) => {
+  try { res.status(201).json(await database.createTask("tasks", req.body)); } catch (error) { next(error); }
 });
 
-app.put("/api/tasks/:id", requireTemporaryContentWriteAccess, requireObjectBody, requireNumericParams("id"), (req, res) => {
-  const task = database.updateTask("tasks", Number(req.params.id), req.body);
+app.put("/api/tasks/:id", requireTemporaryContentWriteAccess, requireObjectBody, requireNumericParams("id"), async (req, res, next) => {
+  try {
+  const task = await database.updateTask("tasks", Number(req.params.id), req.body);
   if (!task) return res.status(404).json({ error: "Task not found" });
   res.json(task);
+  } catch (error) { next(error); }
 });
 
-app.get("/api/progress-status", (req, res) => {
-  res.json({ progress: database.getProgress("tasks") });
+app.get("/api/progress-status", async (req, res, next) => {
+  try { res.json({ progress: await database.getProgress("tasks") }); } catch (error) { next(error); }
 });
 
-app.get("/api/journey/items", (req, res) => {
-  res.json(database.getJourneyItems());
+app.get("/api/journey/items", async (req, res, next) => {
+  try { res.json(await database.getJourneyItems()); } catch (error) { next(error); }
 });
 
-app.put("/api/journey/items/:id", requireTemporaryContentWriteAccess, requireObjectBody, requireNumericParams("id"), (req, res) => {
-  const item = database.updateJourneyItem(Number(req.params.id), req.body);
+app.put("/api/journey/items/:id", requireTemporaryContentWriteAccess, requireObjectBody, requireNumericParams("id"), async (req, res, next) => {
+  try {
+  const item = await database.updateJourneyItem(Number(req.params.id), req.body);
   if (!item) return res.status(404).json({ error: "Journey item not found" });
   res.json(item);
+  } catch (error) { next(error); }
 });
 
-app.put("/api/tasks/:id/status", requireTemporaryContentWriteAccess, requireObjectBody, requireStatusAction, requireNumericParams("id"), (req, res) => {
-  const task = database.updateTaskStatus("tasks", Number(req.params.id), req.body.action);
+app.put("/api/tasks/:id/status", requireTemporaryContentWriteAccess, requireObjectBody, requireStatusAction, requireNumericParams("id"), async (req, res, next) => {
+  try {
+  const task = await database.updateTaskStatus("tasks", Number(req.params.id), req.body.action);
   if (!task) return res.status(404).json({ error: "Task not found" });
   res.json(task);
+  } catch (error) { next(error); }
 });
 
 // ── Training Tracker ──────────────────────────────────────────────────────────
 
-app.get("/api/training-tasks", (req, res) => {
-  res.json(database.getTasks("training_tasks"));
+app.get("/api/training-tasks", async (req, res, next) => {
+  try { res.json(await database.getTasks("training_tasks")); } catch (error) { next(error); }
 });
 
-app.post("/api/training-tasks", requireTemporaryContentWriteAccess, requireObjectBody, (req, res) => {
-  res.status(201).json(database.createTask("training_tasks", req.body));
+app.post("/api/training-tasks", requireTemporaryContentWriteAccess, requireObjectBody, async (req, res, next) => {
+  try { res.status(201).json(await database.createTask("training_tasks", req.body)); } catch (error) { next(error); }
 });
 
-app.put("/api/training-tasks/:id", requireTemporaryContentWriteAccess, requireObjectBody, requireNumericParams("id"), (req, res) => {
-  const task = database.updateTask("training_tasks", Number(req.params.id), req.body);
+app.put("/api/training-tasks/:id", requireTemporaryContentWriteAccess, requireObjectBody, requireNumericParams("id"), async (req, res, next) => {
+  try {
+  const task = await database.updateTask("training_tasks", Number(req.params.id), req.body);
   if (!task) return res.status(404).json({ error: "Task not found" });
   res.json(task);
+  } catch (error) { next(error); }
 });
 
-app.get("/api/training-progress-status", (req, res) => {
-  res.json({ progress: database.getProgress("training_tasks") });
+app.get("/api/training-progress-status", async (req, res, next) => {
+  try { res.json({ progress: await database.getProgress("training_tasks") }); } catch (error) { next(error); }
 });
 
-app.put("/api/training-tasks/:id/status", requireTemporaryContentWriteAccess, requireObjectBody, requireStatusAction, requireNumericParams("id"), (req, res) => {
-  const task = database.updateTaskStatus("training_tasks", Number(req.params.id), req.body.action);
+app.put("/api/training-tasks/:id/status", requireTemporaryContentWriteAccess, requireObjectBody, requireStatusAction, requireNumericParams("id"), async (req, res, next) => {
+  try {
+  const task = await database.updateTaskStatus("training_tasks", Number(req.params.id), req.body.action);
   if (!task) return res.status(404).json({ error: "Task not found" });
   res.json(task);
+  } catch (error) { next(error); }
 });
 // ── Leadership ───────────────────────────────────────────────────────────────
 
-app.get("/api/leadership", (req, res) => {
-  res.json(database.getLeadership());
+app.get("/api/leadership", async (req, res, next) => {
+  try { res.json(await database.getLeadership()); } catch (error) { next(error); }
 });
 
-app.put("/api/leadership/:section/:id", requireTemporaryContentWriteAccess, requireObjectBody, requireNumericParams("id"), (req, res) => {
-  const updated = database.updateLeadershipItem(req.params.section, Number(req.params.id), req.body);
+app.put("/api/leadership/:section/:id", requireTemporaryContentWriteAccess, requireObjectBody, requireNumericParams("id"), async (req, res, next) => {
+  try {
+  const updated = await database.updateLeadershipItem(req.params.section, Number(req.params.id), req.body);
   if (!updated) return res.status(404).json({ error: "Leadership item not found" });
-  res.json(database.getLeadership());
+  res.json(await database.getLeadership());
+  } catch (error) { next(error); }
 });
 
 // ── Home ─────────────────────────────────────────────────────────────────────
 
-app.get("/api/home/spotlight", (req, res) => {
-  res.json(database.getHomeSpotlight());
+app.get("/api/home/spotlight", async (req, res, next) => {
+  try { res.json(await database.getHomeSpotlight()); } catch (error) { next(error); }
 });
 
-app.put("/api/home/spotlight", requireTemporaryContentWriteAccess, requireObjectBody, (req, res) => {
-  res.json(database.updateHomeSpotlight(req.body));
+app.put("/api/home/spotlight", requireTemporaryContentWriteAccess, requireObjectBody, async (req, res, next) => {
+  try { res.json(await database.updateHomeSpotlight(req.body)); } catch (error) { next(error); }
 });
 
-app.get("/api/home/announcements", (req, res) => {
-  res.json(database.getAnnouncements());
+app.get("/api/home/announcements", async (req, res, next) => {
+  try { res.json(await database.getAnnouncements()); } catch (error) { next(error); }
 });
 
-app.put("/api/home/announcements/:id", requireTemporaryContentWriteAccess, requireObjectBody, requireNumericParams("id"), (req, res) => {
-  const announcement = database.updateAnnouncement(Number(req.params.id), req.body);
+app.put("/api/home/announcements/:id", requireTemporaryContentWriteAccess, requireObjectBody, requireNumericParams("id"), async (req, res, next) => {
+  try {
+  const announcement = await database.updateAnnouncement(Number(req.params.id), req.body);
   if (!announcement) return res.status(404).json({ error: "Announcement not found" });
   res.json(announcement);
+  } catch (error) { next(error); }
 });
 
 // ── Song Links ───────────────────────────────────────────────────────────────
 
-app.get("/api/song-links", (req, res) => {
-  res.json(database.getSongLinks());
+app.get("/api/song-links", async (req, res, next) => {
+  try { res.json(await database.getSongLinks()); } catch (error) { next(error); }
 });
 
-app.put("/api/song-links/:sectionId/:cardId", requireTemporaryContentWriteAccess, requireObjectBody, requireNumericParams("sectionId", "cardId"), (req, res) => {
-  const updated = database.updateSongLink(Number(req.params.sectionId), Number(req.params.cardId), req.body);
+app.put("/api/song-links/:sectionId/:cardId", requireTemporaryContentWriteAccess, requireObjectBody, requireNumericParams("sectionId", "cardId"), async (req, res, next) => {
+  try {
+  const updated = await database.updateSongLink(Number(req.params.sectionId), Number(req.params.cardId), req.body);
   if (!updated) return res.status(404).json({ error: "Song link not found" });
-  res.json(database.getSongLinks());
+  res.json(await database.getSongLinks());
+  } catch (error) { next(error); }
 });
 
 app.listen(PORT, () => console.log(`Server running at http://localhost:${PORT}`));
