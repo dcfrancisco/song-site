@@ -22,14 +22,14 @@ export class TaskService {
     return this.http.put<Task>(`${API_BASE_URL}/tasks/${id}/status`, { action });
   }
 
-  updateTask(id: number, data: any) {
-    return this.http.put(
+  updateTask(id: number, data: Partial<Task>): Observable<Task> {
+    return this.http.put<Task>(
     `${this.apiUrl}/tasks/${id}`,
     data
     );
   }
 
-  getTrainingTasks(): Observable<any[]> {
-    return this.http.get<any[]>(`${API_BASE_URL}/training-tasks`);
+  getTrainingTasks(): Observable<Task[]> {
+    return this.http.get<Task[]>(`${API_BASE_URL}/training-tasks`);
   }
 }

@@ -2,7 +2,7 @@ openapi: 3.0.3
 info:
   title: Song Site API
   version: 0.1.0
-  description: OpenAPI-first contract for Journey and task workflows. Temporary mutation routes accept local development requests without a key; non-development deployments require the X-Admin-Key bridge until identity and RBAC are implemented.
+  description: OpenAPI-first contract for Journey, training, and content workflows. SQLite is the local adapter and PostgreSQL is the production adapter; both expose the same response shapes. Temporary mutation routes accept local development requests without a key; non-development deployments require the X-Admin-Key bridge until identity and RBAC are implemented.
 servers:
   - url: http://localhost:5001
     description: Local backend
@@ -373,12 +373,12 @@ components:
         endDate: { type: string }
         status:
           type: string
-          enum: [Not Started, Pending, In Progress, Blocked, Completed]
+          enum: [Not Started, Pending, In Progress, Completed]
         progress: { type: number, minimum: 0, maximum: 100 }
         url: { type: string }
         startedAt: { type: string, format: date-time }
         completedAt: { type: string, format: date-time }
-        actualDuration: { type: string }
+        actualDuration: { type: integer, minimum: 0, nullable: true }
         description: { type: string }
         externalLinks:
           type: array

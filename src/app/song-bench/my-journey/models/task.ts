@@ -16,7 +16,7 @@ export interface Task {
   url: string;
   startedAt?: string;
   completedAt?: string;
-  actualDuration?: number;
+  actualDuration?: number | null;
   description?: string;
   externalLinks?: TaskLink[];
 }
