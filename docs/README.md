@@ -48,12 +48,21 @@ See [API and data inventory](api-data-inventory.md) for the complete site review
 
 See [Navigation flows](navigation-flows.md) for the implemented main flow and planned admin dashboard flow.
 
+## Engineering handbooks
+
+- [FED Handbook](handbooks/fed-handbook.md) - Angular frontend development, SSO-safe UI, unit tests, and Playwright guidance.
+- [BED Handbook](handbooks/bed-handbook.md) - Express API, adapters, migrations, PostgreSQL, SSO, and RBAC.
+- [QA Handbook](handbooks/qa-handbook.md) - test layers, test planning, release gates, exploratory testing, and defect handling.
+
 Local environment variables are documented in [Local development](runbooks/local-development.md). Copy `.env.example` to `.env` and keep real identity values local.
 
 ## Planned documentation
 
 - `openapi/`: versioned API contract and generated artifacts
 - `runbooks/`: local setup, migrations, deployment, and rollback procedures
+- [PostgreSQL Compose runbook](runbooks/postgresql-compose.md) - production-like local stack operations.
+- [Testing and release runbook](runbooks/testing-and-release.md) - verification and release evidence.
+- [Incident response runbook](runbooks/incident-response.md) - triage, security, data, recovery, and closure.
 - `decisions/`: unresolved architecture questions and accepted follow-up proposals
 
 ## Current implementation questions
