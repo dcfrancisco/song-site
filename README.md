@@ -211,6 +211,12 @@ Also consult:
 - [Architecture decisions](docs/README.md)
 - [Work packages](docs/work-packages.md)
 - [Local development runbook](docs/runbooks/local-development.md)
+- [FED Handbook](docs/handbooks/fed-handbook.md)
+- [BED Handbook](docs/handbooks/bed-handbook.md)
+- [QA Handbook](docs/handbooks/qa-handbook.md)
+- [PostgreSQL Compose runbook](docs/runbooks/postgresql-compose.md)
+- [Testing and release runbook](docs/runbooks/testing-and-release.md)
+- [Incident response runbook](docs/runbooks/incident-response.md)
 - [API and data inventory](docs/api-data-inventory.md)
 - [Navigation flows](docs/navigation-flows.md)
 

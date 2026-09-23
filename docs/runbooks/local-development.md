@@ -89,8 +89,10 @@ Production must set `NODE_ENV=production`. The backend does not mount `/api-docs
 
 ## PostgreSQL integration status
 
-PostgreSQL is the production target, but it is not wired into the current backend yet. `DATABASE_URL` is reserved for the future PostgreSQL adapter; setting it does not currently switch the runtime away from SQLite. The integration work is tracked in `WP-017` and must add a driver, adapter selection, PostgreSQL migration execution, CI parity, backups, and rollback or forward-fix procedures before production use.
+The backend now supports an explicit PostgreSQL adapter selected with `DB_DRIVER=postgres` and `DATABASE_URL`. The production-like Compose profile uses PostgreSQL 14 with `pgvector`; use [the PostgreSQL Compose runbook](postgresql-compose.md) for startup and verification.
+
+SQLite remains the fast local default. It is not fully compatible with PostgreSQL, so API, migration, constraint, and vector-related changes must also be checked against Compose PostgreSQL before promotion. Adapter parity, managed backups, production secret management, and deployment cutover remain operational work and must not be inferred from a successful local SQLite test.
 
 ## Production-readiness warning
 
-The local API is not production-ready yet. Mutation endpoints do not currently enforce authentication or authorization, the classic Journey UI still stores updates in `localStorage`, backend automated tests are not present, and GitHub Pages does not host the API. These gaps are tracked under `WP-018` and must be resolved before production promotion.
+The GitHub Pages workflow hosts only the static frontend and does not host the Express API or PostgreSQL. SSO-compatible authorization and leadership content mutation require the production identity/RBAC integration and deployment configuration to be verified separately. Do not treat the local Compose content key as a production credential.

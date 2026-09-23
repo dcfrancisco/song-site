@@ -25,6 +25,18 @@ Use the RFC 2119 meanings of **MUST**, **MUST NOT**, **SHOULD**, **SHOULD NOT**,
 
 ## Implementation standards
 
+### Secure and maintainable code
+
+All AI-assisted code MUST follow applicable OWASP secure-coding guidance and SonarQube quality rules at all times. These are baseline requirements for new code, edits, tests, scripts, infrastructure, and configuration—not optional cleanup items.
+
+- Validate and constrain all untrusted input at the server boundary.
+- Use parameterized database access; never construct SQL from untrusted input.
+- Protect authentication, authorization, session, secrets, logging, error, and cryptographic behavior according to OWASP guidance.
+- Do not introduce hard-coded credentials, insecure defaults, sensitive-data leakage, unsafe deserialization, injection paths, or client-only security controls.
+- Prefer clear, small, testable code and remove dead code, duplicated logic, unreachable branches, and avoidable complexity.
+- Treat SonarQube findings as defects to fix or explicitly justify; do not suppress a rule without a narrowly scoped reason and documented review.
+- When a rule conflicts with an existing implementation, preserve behavior only when necessary and record the deviation plus a follow-up remediation item.
+
 1. Start from the nearest owning route, service, repository, schema, or test.
 2. State a falsifiable hypothesis and a focused validation before editing.
 3. Prefer the smallest change that preserves existing public routes and response shapes.

@@ -5,6 +5,8 @@ Follow the shared team contract in [docs/ai/team-agent-contract.md](../docs/ai/t
 Copilot MUST:
 
 - preserve unrelated user changes and avoid destructive Git operations;
+- follow OWASP secure-coding guidance and SonarQube quality rules for every generated or edited code, test, script, infrastructure, and configuration file;
+- treat security and quality findings as defects to fix or narrowly document, never silently suppress them;
 - inspect the nearest owning code path before editing;
 - keep API changes OpenAPI-first and database changes migration-backed;
 - enforce authorization on the backend, not only through Angular navigation;
