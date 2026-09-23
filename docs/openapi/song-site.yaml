@@ -198,6 +198,72 @@ paths:
                   type: array
                   items:
                     type: object
+  /api/leadership/orgchart:
+    get:
+      operationId: listLeadershipOrgChart
+      summary: List leadership organizational-chart nodes
+      responses:
+        '200':
+          description: Organizational-chart nodes ordered by item ID
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/OrgChartNode'
+    post:
+      operationId: createLeadershipOrgChartNode
+      summary: Create a leadership organizational-chart node
+      security:
+        - temporaryAdminKey: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/OrgChartNodeInput'
+      responses:
+        '201':
+          description: Created organizational-chart node
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OrgChartNode'
+  /api/leadership/orgchart/{id}:
+    put:
+      operationId: updateLeadershipOrgChartNode
+      summary: Update a leadership organizational-chart node
+      security:
+        - temporaryAdminKey: []
+      parameters:
+        - $ref: '#/components/parameters/TaskId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/OrgChartNodeInput'
+      responses:
+        '200':
+          description: Updated organizational-chart node
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OrgChartNode'
+        '404':
+          $ref: '#/components/responses/NotFound'
+    delete:
+      operationId: deleteLeadershipOrgChartNode
+      summary: Delete a leadership organizational-chart node
+      security:
+        - temporaryAdminKey: []
+      parameters:
+        - $ref: '#/components/parameters/TaskId'
+      responses:
+        '204':
+          description: Organizational-chart node deleted
+        '404':
+          $ref: '#/components/responses/NotFound'
   /api/journey/items:
     get:
       operationId: listJourneyItems
@@ -427,6 +493,25 @@ components:
           items:
             type: object
             additionalProperties: true
+    OrgChartNode:
+      type: object
+      required: [id, name, role]
+      properties:
+        id: { type: integer, format: int64 }
+        name: { type: string }
+        role: { type: string }
+        parentId: { type: integer, format: int64, nullable: true }
+        photo: { type: string }
+        sortOrder: { type: integer }
+    OrgChartNodeInput:
+      type: object
+      required: [name, role]
+      properties:
+        name: { type: string }
+        role: { type: string }
+        parentId: { type: integer, format: int64, nullable: true }
+        photo: { type: string }
+        sortOrder: { type: integer }
     Announcement:
       type: object
       required: [id, icon, title, body]

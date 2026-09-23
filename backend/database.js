@@ -134,6 +134,38 @@ function getLeadership() {
   return result;
 }
 
+function getLeadershipOrgChart() {
+  return database.prepare(
+    "SELECT payload FROM leadership_sections WHERE section_name = 'orgChart' ORDER BY item_id"
+  ).all().map((row) => JSON.parse(row.payload));
+}
+
+function createLeadershipOrgChartNode(payload) {
+  const nextId = database.prepare(
+    "SELECT COALESCE(MAX(item_id), 0) + 1 AS next_id FROM leadership_sections WHERE section_name = 'orgChart'"
+  ).get().next_id;
+  const node = { ...payload, id: Number(payload.id || nextId) };
+  database.prepare(
+    "INSERT INTO leadership_sections (section_name, item_id, payload) VALUES ('orgChart', ?, ?)"
+  ).run(node.id, JSON.stringify(node));
+  return node;
+}
+
+function updateLeadershipOrgChartNode(id, payload) {
+  const node = { ...payload, id: Number(id) };
+  const result = database.prepare(
+    "UPDATE leadership_sections SET payload = ? WHERE section_name = 'orgChart' AND item_id = ?"
+  ).run(JSON.stringify(node), id);
+  return result.changes > 0 ? node : null;
+}
+
+function deleteLeadershipOrgChartNode(id) {
+  const result = database.prepare(
+    "DELETE FROM leadership_sections WHERE section_name = 'orgChart' AND item_id = ?"
+  ).run(id);
+  return result.changes > 0;
+}
+
 function updateLeadershipItem(sectionName, itemId, payload) {
   const result = database.prepare(
     "UPDATE leadership_sections SET payload = ? WHERE section_name = ? AND item_id = ?"
@@ -238,6 +270,10 @@ module.exports = {
   updateTaskStatus,
   getLeadership,
   updateLeadershipItem,
+  getLeadershipOrgChart,
+  createLeadershipOrgChartNode,
+  updateLeadershipOrgChartNode,
+  deleteLeadershipOrgChartNode,
   getHomeSpotlight,
   updateHomeSpotlight,
   getAnnouncements,

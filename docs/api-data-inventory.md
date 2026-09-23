@@ -10,7 +10,7 @@ The current Express API is mounted from `backend/server.js` at `http://localhost
 | --- | --- | --- |
 | Journey tasks | `GET/POST /api/tasks`, `PUT /api/tasks/:id`, `PUT /api/tasks/:id/status`, `GET /api/progress-status` | SQLite locally, populated by migration `004-content-data.sql` |
 | Training | `GET/POST /api/training-tasks`, `PUT /api/training-tasks/:id`, `PUT /api/training-tasks/:id/status`, `GET /api/training-progress-status` | SQLite locally, populated by migration `004-content-data.sql` |
-| Leadership | `GET/PUT /api/leadership/:section/:id` | SQLite `leadership_sections`, populated by migration `004-content-data.sql` |
+| Leadership | `GET /api/leadership`, `PUT /api/leadership/:section/:id`; org-chart `GET/POST /api/leadership/orgchart`, `PUT/DELETE /api/leadership/orgchart/:id` | SQLite `leadership_sections`; PostgreSQL `leadership_members` plus compatibility `leadership_sections` |
 | Home | `GET/PUT /api/home/spotlight`, `GET/PUT /api/home/announcements/:id` | SQLite `home_spotlight`, `home_spotlight_people`, and `announcements`, populated by migration `004-content-data.sql` |
 | Links | `GET/PUT /api/song-links/:sectionId/:cardId` | SQLite `song_link_sections` and `song_link_cards`, populated by migration `004-content-data.sql` |
 | Classic Journey items | `GET /api/journey/items`, `PUT /api/journey/items/:id` | SQLite `journey_items` and `journey_statuses`, populated by migration `004-content-data.sql`; frontend writes still use `localStorage` |
@@ -63,6 +63,7 @@ New APIs should be added to the OpenAPI contract under `/api/v1` while the curre
 - `GET /api/v1/home/spotlight`
 - `GET /api/v1/home/announcements`
 - `GET /api/v1/leadership`
+- `GET/POST/PUT/DELETE /api/v1/leadership/orgchart` and `/api/v1/leadership/orgchart/:id` after the compatibility routes are promoted
 - `GET /api/v1/song-links`
 - `GET /api/v1/training-catalog`
 - `POST/PUT /api/v1/announcements` for authorized content managers

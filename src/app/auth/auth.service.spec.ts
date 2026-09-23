@@ -1,5 +1,3 @@
-import { describe, expect, it } from '@vitest/globals';
-
 import { resolveRedirectUri } from './auth.service';
 
 describe('resolveRedirectUri', () => {

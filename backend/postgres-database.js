@@ -110,6 +110,42 @@ async function updateLeadershipItem(section, id, payload) {
   return result.rowCount > 0;
 }
 
+async function getLeadershipOrgChart() {
+  const result = await getPostgresPool().query(
+    "SELECT payload FROM leadership_sections WHERE section_name = 'orgChart' ORDER BY item_id"
+  );
+  return result.rows.map((row) => row.payload);
+}
+
+async function createLeadershipOrgChartNode(payload) {
+  const nextIdResult = await getPostgresPool().query(
+    "SELECT COALESCE(MAX(item_id), 0) + 1 AS next_id FROM leadership_sections WHERE section_name = 'orgChart'"
+  );
+  const id = Number(nextIdResult.rows[0].next_id);
+  await getPostgresPool().query(
+    `INSERT INTO leadership_sections (section_name, item_id, payload)
+     VALUES ('orgChart', $1, $2)`,
+    [id, { ...payload, id }]
+  );
+  return { ...payload, id };
+}
+
+async function updateLeadershipOrgChartNode(id, payload) {
+  const result = await getPostgresPool().query(
+    "UPDATE leadership_sections SET payload = $1 WHERE section_name = 'orgChart' AND item_id = $2",
+    [{ ...payload, id: Number(id) }, id]
+  );
+  return result.rowCount > 0 ? { ...payload, id: Number(id) } : null;
+}
+
+async function deleteLeadershipOrgChartNode(id) {
+  const result = await getPostgresPool().query(
+    "DELETE FROM leadership_sections WHERE section_name = 'orgChart' AND item_id = $1",
+    [id]
+  );
+  return result.rowCount > 0;
+}
+
 async function getHomeSpotlight() {
   const result = await getPostgresPool().query('SELECT * FROM home_spotlights WHERE is_active = TRUE ORDER BY sort_order');
   return { title: 'Congratulations to our Newly-certified Full Stack Developers!', persons: result.rows.map((row, index) => ({ id: Number(row.id) || index + 1, displayName: row.display_name, fullName: row.full_name, certification: row.certification, headshot: row.headshot_url, bio: row.bio, image: row.image_url })) };
@@ -169,4 +205,4 @@ async function updateJourneyItem(id, updates) {
   return (await getJourneyItems()).find(item => item.id === Number(id)) || null;
 }
 
-module.exports = { createTask, getTasks, getProgress, updateTask, updateTaskStatus, getLeadership, updateLeadershipItem, getHomeSpotlight, updateHomeSpotlight, getAnnouncements, updateAnnouncement, getSongLinks, updateSongLink, getJourneyItems, updateJourneyItem, close: closePostgresPool };
+module.exports = { createTask, getTasks, getProgress, updateTask, updateTaskStatus, getLeadership, updateLeadershipItem, getLeadershipOrgChart, createLeadershipOrgChartNode, updateLeadershipOrgChartNode, deleteLeadershipOrgChartNode, getHomeSpotlight, updateHomeSpotlight, getAnnouncements, updateAnnouncement, getSongLinks, updateSongLink, getJourneyItems, updateJourneyItem, close: closePostgresPool };
