@@ -1,0 +1,21 @@
+{
+  "name": "Song Site Development",
+  "image": "mcr.microsoft.com/devcontainers/javascript-node:1-24-bookworm",
+  "remoteUser": "node",
+  "forwardPorts": [4200, 5001, 5432],
+  "portsAttributes": {
+    "4200": { "label": "Song Site frontend", "onAutoForward": "openBrowser" },
+    "5001": { "label": "Song Site API" },
+    "5432": { "label": "PostgreSQL" }
+  },
+  "postCreateCommand": "npm install --legacy-peer-deps && cd backend && npm install",
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        "angular.ng-template",
+        "dbaeumer.vscode-eslint",
+        "ms-azuretools.vscode-docker"
+      ]
+    }
+  }
+}

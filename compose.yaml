@@ -1,0 +1,44 @@
+services:
+  postgres:
+    image: pgvector/pgvector:pg14
+    environment:
+      POSTGRES_DB: song_site
+      POSTGRES_USER: song_site
+      POSTGRES_PASSWORD: song_site_local
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U song_site -d song_site"]
+      interval: 5s
+      timeout: 5s
+      retries: 12
+    volumes:
+      - song_site_pgdata:/var/lib/postgresql/data
+      - ./docker/postgres/init:/docker-entrypoint-initdb.d:ro
+
+  backend:
+    build:
+      context: .
+      dockerfile: docker/backend.Dockerfile
+    environment:
+      NODE_ENV: production
+      PORT: 5001
+      DB_DRIVER: postgres
+      DATABASE_URL: postgresql://song_site:song_site_local@postgres:5432/song_site
+      PGSSL: "false"
+      TEMP_CONTENT_API_KEY: compose-local-content-key
+    depends_on:
+      postgres:
+        condition: service_healthy
+    expose:
+      - "5001"
+
+  frontend:
+    build:
+      context: .
+      dockerfile: docker/frontend.Dockerfile
+    depends_on:
+      - backend
+    ports:
+      - "4200:80"
+
+volumes:
+  song_site_pgdata:
