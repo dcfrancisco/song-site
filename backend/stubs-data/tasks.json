@@ -1,0 +1,246 @@
+[
+  {
+    "id": 1,
+    "title": "Create CV",
+    "startDate": "",
+    "endDate": "",
+    "status": "Not Started",
+    "progress": 0,
+    "url": "/my-cv",
+    "startedAt": "",
+    "completedAt": "",
+    "actualDuration": "",
+    "description": "Create a CV to communicate your value and make a strong first impression when a project opportunity rises.",
+    "externalLinks": [
+      {
+        "text": "ATCP Song Bench CV Template",
+        "url": "https://ts.accenture.com/sites/InteractiveBench/Shared%20Documents/Forms/AllItems.aspx?id=%2Fsites%2FInteractiveBench%2FShared%20Documents%2FGeneral%2F01%20Onboarding%20Documents%2FCV%2F%5BNEW%5D%20Manila&viewid=74113734%2D093e%2D4882%2Db4ce%2Dcd5ba3489b92"
+      },
+      {
+        "text": "ATCP Song Bench CV Repository",
+        "url": "https://ts.accenture.com/sites/InteractiveBench/Shared%20Documents/Forms/AllItems.aspx?id=%2Fsites%2FInteractiveBench%2FShared%20Documents%2FGeneral%2F01%20Onboarding%20Documents%2FCV&viewid=74113734%2D093e%2D4882%2Db4ce%2Dcd5ba3489b92"
+      }
+    ]
+  },
+  {
+    "id": 2,
+    "title": "ATCP Song Skills Matrix",
+    "startDate": "",
+    "endDate": "",
+    "status": "Not Started",
+    "progress": 0,
+    "url": "/my-skills-matrix",
+    "startedAt": "",
+    "completedAt": "",
+    "actualDuration": 0,
+    "description": "Help the ATCP Song organization to map your skills and skills levels so you can be matched to best clients.",
+    "externalLinks": [
+      {
+        "text": "ATCP Song Skills Matrix",
+        "url": "https://ts.accenture.com/:x:/r/sites/InteractiveBench/_layouts/15/Doc.aspx?sourcedoc=%7BD0BFCA08-72A7-4D98-A4DE-C4BBA8E1F9CE%7D&file=ATCP%20Song%20Skills%20Matrix.xlsx&action=default&mobileredirect=true"
+      }
+    ]
+  },
+  {
+    "id": 3,
+    "title": "myCompentency",
+    "startDate": "",
+    "endDate": "",
+    "status": "Not Started",
+    "progress": 0,
+    "url": "/my-mycompetency",
+    "startedAt": "",
+    "completedAt": "",
+    "actualDuration": 0,
+    "description": "Select and assess your competency on your primary and secondary skills.",
+    "externalLinks": [
+      {
+        "text": "myCompetency",
+        "url": "https://mycompetency.accenture.com/#/home"
+      }
+    ]
+  },
+  {
+    "id": 4,
+    "title": "Update contact details",
+    "startDate": "",
+    "endDate": "",
+    "status": "Not Started",
+    "progress": 0,
+    "url": "/my-update-contact",
+    "startedAt": "",
+    "completedAt": "",
+    "actualDuration": "",
+    "description": "Update your primary and emergency contact details in our bench repository so we can reach out to you for important news and reminders.",
+    "externalLinks": [
+      {
+        "text": "Update contact details",
+        "url": "https://ts.accenture.com/:x:/s/InteractiveBench/Ea8eyvc-Nz9Jp4VZXt7BJC0BQphNTKjF7J1OAkX3wWLOsQ?e=CMYbAo."
+      }
+    ]
+  },
+  {
+    "id": 5,
+    "title": "Update your Priorities in Workday",
+    "startDate": "",
+    "endDate": "",
+    "status": "Not Started",
+    "progress": 0,
+    "url": "/my-workday",
+    "startedAt": "",
+    "completedAt": "",
+    "actualDuration": "",
+    "description": "Update your priorities in Workday as well as take trainings and required learnings.",
+    "externalLinks": [
+      {
+        "text": "Workday",
+        "url": "https://wd103.myworkday.com/accenture/d/task/2998$46108.htmld"
+      }
+    ]
+  },
+  {
+    "id": 6,
+    "title": "Complete RIRO",
+    "startDate": "",
+    "endDate": "",
+    "status": "Not Started",
+    "progress": 0,
+    "url": "/my-myriro",
+    "startedAt": "",
+    "completedAt": "",
+    "actualDuration": "",
+    "description": "Complete our Roll-in / Roll-off (RIRO) checklist in our repository as well as in the ATCP Bench Portal.",
+    "externalLinks": [
+      {
+        "text": "RIRO",
+        "url": "https://roro.clientdataprotection.accenture.com/RORO.aspx"
+      }
+    ]
+  },
+  {
+    "id": 7,
+    "title": "Update the Asset Tracker",
+    "startDate": "",
+    "endDate": "",
+    "status": "Not Started",
+    "progress": 0,
+    "url": "/my-asset-tracker",
+    "startedAt": "",
+    "completedAt": "",
+    "actualDuration": "",
+    "description": "Ensure that your workstation is properly accounted for by updating the ATCP Song Bench Asset Tracker.",
+    "externalLinks": [
+      {
+        "text": "Asset Tracker",
+        "url": "https://ts.accenture.com/:x:/s/InteractiveBench/EXhaA23geO9GsZAw0H-zOyMBGzLVYnYM4vaaIkW3alkNvQ?e=i4uhaZ"
+      }
+    ]
+  },
+  {
+    "id": 8,
+    "title": "My Compliance",
+    "startDate": "",
+    "endDate": "",
+    "status": "Not Started",
+    "progress": 0,
+    "url": "/my-compliance",
+    "startedAt": "",
+    "completedAt": "",
+    "actualDuration": 0,
+    "description": "Create a CV to communicate your value and make a strong first impression when a project opportunity rises.",
+    "externalLinks": [
+      {
+        "text": "My Compliance",
+        "url": "https://ts.accenture.com/:x:/s/InteractiveBench/EXhaA23geO9GsZAw0H-zOyMBGzLVYnYM4vaaIkW3alkNvQ?e=i4uhaZ"
+      }
+    ]
+  },
+  {
+    "id": 9,
+    "title": "Update your People Lead in Workday",
+    "startDate": "",
+    "endDate": "",
+    "status": "Not Started",
+    "progress": 0,
+    "url": "/people-lead",
+    "startedAt": "",
+    "completedAt": "",
+    "actualDuration": "",
+    "description": "Update your people lead in workday as well as take trainings and required learnings.",
+    "externalLinks": [
+      {
+        "text": "Workday",
+        "url": "https://wd103.myworkday.com/accenture/d/home.htmld"
+      }
+    ]
+  },
+  {
+    "id": 10,
+    "title": "Update your Contact Details in Workday",
+    "startDate": "",
+    "endDate": "",
+    "status": "Not Started",
+    "progress": 0,
+    "url": "/wd-update-contact",
+    "startedAt": "",
+    "completedAt": "",
+    "actualDuration": "",
+    "description": "Update your primary and emergency contact details in Workday for BCM and other important notifications.",
+    "externalLinks": [
+      {
+        "text": "Workday",
+        "url": "https://wd103.myworkday.com/accenture/d/home.htmld"
+      }
+    ]
+  },
+  {
+    "id": 11,
+    "title": "Register to Percipio, Pluralsight, and Udacity",
+    "startDate": "",
+    "endDate": "",
+    "status": "Not Started",
+    "progress": 0,
+    "url": "/my-learning-platform",
+    "startedAt": "",
+    "completedAt": "",
+    "actualDuration": "",
+    "description": "Access thousands of training materials and build your capability by registering your Accenture account with our learning partners Percipio, Pluralsight, and Udacity.",
+    "externalLinks": [
+      {
+        "text": "Accenture Percipio site",
+        "url": "https://accenture.percipio.com/"
+      },
+      {
+        "text": "Pluralsight site",
+        "url": "https://app.pluralsight.com/id/signin?redirectTo=https%3A%2F%2Fapp.pluralsight.com%2Flibrary%2Ffree"
+      },
+      {
+        "text": "Udacity Site",
+        "url": "https://auth.udacity.com/sign-in?next=https://www.udacity.com/dashboard"
+      },
+      {
+        "text": "Udacity: TQ at Accenture",
+        "url": "https://www.udacity.com/accenture"
+      }
+    ]
+  },
+  {
+    "id": 12,
+    "title": "Complete all Training trackers",
+    "startDate": "",
+    "endDate": "",
+    "status": "Not Started",
+    "progress": 0,
+    "url": "/training-tracker",
+    "startedAt": "",
+    "completedAt": "",
+    "actualDuration": "",
+    "description": "Update the training trackers in our repository so we can account which trainings are need to be taken, in-progress, or completed.",
+    "externalLinks": [
+      {
+        "text": "Training Tracker",
+        "url": "/training-tracker"
+      }
+    ]
+  }
+]

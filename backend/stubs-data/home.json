@@ -1,0 +1,69 @@
+{
+  "spotlight": {
+    "title": "Congratulations to our Newly-certified Full Stack Developers!",
+    "persons": [
+      {
+        "id": 1,
+        "displayName": "Ardione, David",
+        "fullName": "Ardione David",
+        "certification": "Certified Full Stack Developer",
+        "headshot": "assets/images/headshot-ardione-david.jpg.png",
+        "bio": "Ardione David is a certified full stack developer who possesses a comprehensive skill set to build and maintain full-stack web applications, ensuring seamless integration between the front-end and back-end components while effectively managing data storage and retrieval, and application security. He's proficient in front-end using ReactJS with Vite, while NestJS for backend, with the use of Postgres and SQLite for database.",
+        "image": "assets/images/congrats3.png"
+      },
+      {
+        "id": 2,
+        "displayName": "Bayona, Mark Anthony",
+        "fullName": "Mark Anthony Bayona",
+        "certification": "Certified Full Stack Developer",
+        "headshot": "assets/images/headshot-bayona-mark-anthony.jpg.png",
+        "bio": "Mark Anthony Bayona is a certified full stack developer who possesses a comprehensive skill set to build and maintain full-stack web applications, ensuring seamless integration between the front-end and back-end components while effectively managing data storage and retrieval, and application security. He's proficient in front-end using ReactJS, while NestJS/Prisma for backend, with the use of Postgres for database.",
+        "image": "assets/images/congrats1.png"
+      },
+      {
+        "id": 3,
+        "displayName": "Fernandez, Henry",
+        "fullName": "Henry Fernandez",
+        "certification": "Certified Full Stack Developer",
+        "headshot": "assets/images/headshot-fernandez-henry.jpg.png",
+        "bio": "Henry Fernandez is a certified full stack developer who possesses a comprehensive skill set to build and maintain full-stack web applications, ensuring seamless integration between the front-end and back-end components while effectively managing data storage and retrieval, and application security. He's proficient in front-end using ReactJS, while NestJS for backend, with the use of Postgres for database.",
+        "image": "assets/images/congrats4.png"
+      },
+      {
+        "id": 4,
+        "displayName": "Ignacio, Alison",
+        "fullName": "Alison Ignacio",
+        "certification": "Certified Full Stack Developer",
+        "headshot": "assets/images/headshot-ignacio-alison.jpg.png",
+        "bio": "Alison Ignacio is a certified full stack developer who possesses a comprehensive skill set to build and maintain full-stack web applications, ensuring seamless integration between the front-end and back-end components while effectively managing data storage and retrieval, and application security. He's proficient in front-end using ReactJS, while NestJS/Prisma for backend, with the use of MySQL for database.",
+        "image": "assets/images/congrats2.png"
+      }
+    ]
+  },
+  "announcements": [
+    {
+      "id": 1,
+      "icon": "notification",
+      "title": "Important Trainings",
+      "body": "Please complete the required training modules to ensure that you are up to date with the latest system processes and standards."
+    },
+    {
+      "id": 2,
+      "icon": "star",
+      "title": "New Feature",
+      "body": "Certificate Gallery and animations have been added to make your experience more interactive and engaging."
+    },
+    {
+      "id": 3,
+      "icon": "report",
+      "title": "Important Notice",
+      "body": "Please stay updated with the latest changes and announcements to ensure the best experience while using the application."
+    },
+    {
+      "id": 4,
+      "icon": "bookmark",
+      "title": "Reminder",
+      "body": "Don't forget to check your latest updates and complete pending tasks to stay up to date with the system."
+    }
+  ]
+}

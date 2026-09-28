@@ -1,0 +1,183 @@
+{
+  "marketLeads": [
+    {
+      "id": 1,
+      "name": "Erick Ona",
+      "role": "ATCP Song Lead / Song Asia Pacific",
+      "initials": "EO",
+      "photo": "https://www.figma.com/api/mcp/asset/0970d093-76cb-4293-be88-bc0e77c8e2e7"
+    },
+    {
+      "id": 2,
+      "name": "Diane Cussay",
+      "role": "Song EMEA and Americas",
+      "initials": "DC",
+      "photo": "https://www.figma.com/api/mcp/asset/a0cdb55d-b1f9-4509-b73c-7440a15ff31f"
+    }
+  ],
+  "practiceLeads": [
+    {
+      "id": 1,
+      "category": "Commerce",
+      "name": "Meikko Moritz",
+      "initials": "MM",
+      "avatarColor": "#6b21a8",
+      "photo": null
+    },
+    {
+      "id": 2,
+      "category": "Design",
+      "name": "Noreena Lagmay",
+      "initials": "NL",
+      "photo": "https://www.figma.com/api/mcp/asset/b09a11d3-f30a-49d4-9e98-7dede9028698"
+    },
+    {
+      "id": 3,
+      "category": "Digital Products",
+      "name": "Jam Planta",
+      "initials": "JP",
+      "photo": "https://www.figma.com/api/mcp/asset/f5f6556e-fc97-4f72-b9c6-0ea881d855fa"
+    },
+    {
+      "id": 4,
+      "category": "Digital Products",
+      "name": "Bogs Papuigan",
+      "initials": "BP",
+      "photo": "https://www.figma.com/api/mcp/asset/c6a2a1ef-b0ae-4a3f-b009-aab510823a5e"
+    }
+  ],
+  "capabilityLeads": [
+    {
+      "id": 1,
+      "category": "Commerce",
+      "groups": [
+        {
+          "subcategory": "Hybris",
+          "members": [
+            { "name": "Bryan Mercado", "initials": "BM", "photo": "https://www.figma.com/api/mcp/asset/4dd961be-e5e1-41c0-a204-e1fc8bddd8a5" },
+            { "name": "Robert Lee", "initials": "RL", "photo": "https://www.figma.com/api/mcp/asset/98f49077-d883-4bb1-bb30-80cf11bd44dc" }
+          ]
+        },
+        {
+          "subcategory": "Salesforce",
+          "members": [
+            { "name": "Cha Gaires", "initials": "CG", "avatarColor": "#475569" },
+            { "name": "Vic Crisostomo", "initials": "VC", "avatarColor": "#475569" }
+          ]
+        },
+        {
+          "subcategory": "Adobe",
+          "members": [
+            { "name": "Ramamar Salsona", "initials": "RS", "avatarColor": "#0369a1" }
+          ]
+        }
+      ]
+    },
+    {
+      "id": 2,
+      "category": "Design",
+      "groups": [
+        {
+          "subcategory": "Manila",
+          "members": [
+            { "name": "Renz Bernardo", "initials": "RB", "photo": "https://www.figma.com/api/mcp/asset/31dbcf1e-f375-4c37-9292-b682e56ffe58" },
+            { "name": "Ariel Poseria", "initials": "AP", "photo": "https://www.figma.com/api/mcp/asset/947f8013-756c-48db-b71e-68cbbcad7407" }
+          ]
+        },
+        {
+          "subcategory": "Cebu",
+          "members": [
+            { "name": "Lord Allen Hernandez", "initials": "LA", "avatarColor": "#0d9488" }
+          ]
+        }
+      ]
+    },
+    {
+      "id": 3,
+      "category": "Digital Products",
+      "groups": [
+        {
+          "subcategory": "WEB",
+          "members": [
+            { "name": "Francis Abuel", "initials": "FA", "photo": "https://www.figma.com/api/mcp/asset/27185e0a-826b-4cb6-a945-9b9a42dcc2f5" }
+          ]
+        },
+        {
+          "subcategory": "Mobile",
+          "members": [
+            { "name": "Wenlyn Teorica", "initials": "WT", "avatarColor": "#15803d" }
+          ]
+        }
+      ]
+    },
+    {
+      "id": 4,
+      "category": "Adobe Marketing",
+      "groups": [
+        {
+          "subcategory": null,
+          "members": [
+            { "name": "Gail Mercado", "initials": "GM", "avatarColor": "#c2410c" },
+            { "name": "Rupert Zach Pinzon", "initials": "RZ", "photo": "https://www.figma.com/api/mcp/asset/36f42d67-5d48-40b4-85ea-24433a5630fc" }
+          ]
+        }
+      ]
+    }
+  ],
+  "enablementChampions": [
+    {
+      "id": 1,
+      "name": "Noreena Lagmay",
+      "role": "Talent Creation Lead",
+      "initials": "NL",
+      "photo": "https://www.figma.com/api/mcp/asset/542edc45-0f59-46c4-bb79-9a47b3b9d189"
+    },
+    {
+      "id": 2,
+      "name": "Cristina Bawal",
+      "role": "Business Operations",
+      "initials": "CB",
+      "avatarColor": "#6b21a8"
+    },
+    {
+      "id": 3,
+      "name": "Jeff Cruz",
+      "role": "Solutioning / Sales Support",
+      "initials": "JC",
+      "avatarColor": "#0369a1"
+    },
+    {
+      "id": 4,
+      "name": "Mea Somido",
+      "role": "HR Partner",
+      "initials": "MS",
+      "photo": "https://www.figma.com/api/mcp/asset/ee636ccb-f496-4de1-b1e6-1903c6e83b55"
+    },
+    {
+      "id": 5,
+      "name": "Vida R. Santos",
+      "role": "Recruitment Partner",
+      "initials": "VR",
+      "avatarColor": "#475569"
+    },
+    {
+      "id": 6,
+      "name": "Gladys Marquez",
+      "role": "TM Partner",
+      "initials": "GM",
+      "photo": "https://www.figma.com/api/mcp/asset/0d4437c7-5ddd-46b5-99ee-a11067ef8ac3"
+    },
+    {
+      "id": 7,
+      "name": "Madel Binondo / Eds Abuan",
+      "role": "Engagement",
+      "initials": "MB",
+      "photo": "https://www.figma.com/api/mcp/asset/4dcbf432-2097-4a3e-8eb3-895c443ff059",
+      "coLead": {
+        "name": "Eds Abuan",
+        "initials": "EA",
+        "photo": "https://www.figma.com/api/mcp/asset/48442f92-58d3-4da5-a445-beccd66e4e42"
+      }
+    }
+  ]
+}

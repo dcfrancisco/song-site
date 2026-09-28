@@ -1,0 +1,135 @@
+[
+  {
+    "id": 1,
+    "title": "TQ Training on Udacity",
+    "startDate": "",
+    "endDate": "",
+    "status": "Not Started",
+    "progress": 0,
+    "url": "https://www.udacity.com/learning-plan/tq-at-accenture",
+    "startedAt": "",
+    "completedAt": "",
+    "actualDuration": "",
+    "description": "",
+    "externalLinks": [
+      {
+        "text": "TQ Training on Udacity",
+        "url": "https://www.udacity.com/learning-plan/tq-at-accenture"
+      }
+    ]
+  },
+  {
+    "id": 2,
+    "title": "Ethics and Compliance",
+    "startDate": "",
+    "endDate": "",
+    "status": "Not Started",
+    "progress": 0,
+    "url": "https://wd103.myworkday.com/accenture/learning/viewmore/6964690f7fd810001c749ba92ee68ceb",
+    "startedAt": "",
+    "completedAt": "",
+    "actualDuration": "",
+    "description": "",
+    "externalLinks": [
+      {
+        "text": "Ethics and Compliance",
+        "url": "https://wd103.myworkday.com/accenture/learning/viewmore/6964690f7fd810001c749ba92ee68ceb"
+      }
+    ]
+  },
+  {
+    "id": 3,
+    "title": "ISA Gold Advocate",
+    "startDate": "",
+    "endDate": "",
+    "status": "Not Started",
+    "progress": 0,
+    "url": "https://in.accenture.com/protectingaccenture/dashboard/?referrer=mailer",
+    "startedAt": "",
+    "completedAt": "",
+    "actualDuration": "",
+    "description": "",
+    "externalLinks": [
+      {
+        "text": "ISA Gold Advocate",
+        "url": "https://in.accenture.com/protectingaccenture/dashboard/?referrer=mailer"
+      }
+    ]
+  },
+  {
+    "id": 4,
+    "title": "Green Software Engineering",
+    "startDate": "",
+    "endDate": "",
+    "status": "Not Started",
+    "progress": 0,
+    "url": "https://connectedlearning.accenture.com/topics/green-software-engineering",
+    "startedAt": "",
+    "completedAt": "",
+    "actualDuration": "",
+    "description": "",
+    "externalLinks": [
+      {
+        "text": "Green Software Engineering",
+        "url": "https://connectedlearning.accenture.com/topics/green-software-engineering"
+      }
+    ]
+  },
+  {
+    "id": 5,
+    "title": "Gen AI Trainings",
+    "startDate": "",
+    "endDate": "",
+    "status": "Not Started",
+    "progress": 0,
+    "url": "https://atci.lkm.delivery.accenture.com/TT/Automation/genAI",
+    "startedAt": "",
+    "completedAt": "",
+    "actualDuration": "",
+    "description": "",
+    "externalLinks": [
+      {
+        "text": "Gen AI Trainings",
+        "url": "https://atci.lkm.delivery.accenture.com/TT/Automation/genAI"
+      }
+    ]
+  },
+  {
+    "id": 6,
+    "title": "Agentic AI Training",
+    "startDate": "",
+    "endDate": "",
+    "status": "Not Started",
+    "progress": 0,
+    "url": "https://ts.accenture.com/:x:/r/sites/InteractiveBench/Shared%20Documents/General/02%20Trackers/FY26%20SONG%20Bench%20One%20Stop%20Tracker.xlsx?d=w090b48a6d4d9403bbc863cc06d0907d7&csf=1&web=1&e=SrLFfs",
+    "startedAt": "",
+    "completedAt": "",
+    "actualDuration": "",
+    "description": "",
+    "externalLinks": [
+      {
+        "text": "Agentic AI Training",
+        "url": "https://ts.accenture.com/:x:/r/sites/InteractiveBench/Shared%20Documents/General/02%20Trackers/FY26%20SONG%20Bench%20One%20Stop%20Tracker.xlsx?d=w090b48a6d4d9403bbc863cc06d0907d7&csf=1&web=1&e=SrLFfs"
+      }
+    ]
+  },
+  {
+    "id": 7,
+    "title": "Coding Standards",
+    "startDate": "",
+    "endDate": "",
+    "status": "Not Started",
+    "progress": 0,
+    "url": "https://in.accenture.com/cioorganization/cio-bootcamp/cio-bootcamp-roles/developer/coding-standards/",
+    "startedAt": "",
+    "completedAt": "",
+    "actualDuration": "",
+    "description": "",
+    "externalLinks": [
+      {
+        "text": "Coding Standards",
+        "url": "https://in.accenture.com/cioorganization/cio-bootcamp/cio-bootcamp-roles/developer/coding-standards/"
+      }
+    ]
+  }
+]
