@@ -62,7 +62,8 @@
               "buildTarget": "song-site:build:production"
             },
             "development": {
-              "buildTarget": "song-site:build:development"
+              "buildTarget": "song-site:build:development",
+              "proxyConfig": "proxy.conf.json"
             }
           },
           "defaultConfiguration": "development"
