@@ -80,6 +80,7 @@
 <div class="actions" (click)="$event.stopPropagation()">
   <button class="btn start-btn"
       *ngIf="task.status==='Not Started'"
+  [disabled]="busyTaskId === task.id"
       (click)="startTask(task, $event)">
       Start
   </button>
@@ -92,13 +93,14 @@
 
   <button class="btn complete-btn"
       *ngIf="task.status==='In Progress'"
-      [disabled]="task.url === '/training-tracker' && !allTrainingCompleted"
+      [disabled]="busyTaskId === task.id || (task.url === '/training-tracker' && !allTrainingCompleted)"
       (click)="openCompleteModal(completeTpl, task)">
       ✔ Mark as Completed
   </button>
 
   <button class="btn update-btn"
       *ngIf="task.status==='Completed'"
+      [disabled]="busyTaskId === task.id"
       (click)="updateTask(task, $event)">
       Update task
   </button>
@@ -108,3 +110,5 @@
   </span>
 </div>
 </div>
+
+<p class="task-error" *ngIf="errorMessage" role="alert">{{ errorMessage }}</p>
