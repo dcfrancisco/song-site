@@ -27,6 +27,9 @@ export class TrainingTracker {
   loadTasks(showCongrats = false) {
     this.taskService.getTasks().subscribe(data => {
       this.tasks = data;
+      if (this.tasks.some(task => task.status !== 'Completed')) {
+        this.congratsDismissed = false;
+      }
       if (showCongrats && !this.congratsDismissed && this.tasks.length > 0 && this.tasks.every(task => task.status === 'Completed')) {
         this.showCongratsModal = true;
       }
