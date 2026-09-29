@@ -43,7 +43,7 @@
       "category": "Digital Products",
       "name": "Bogs Papuigan",
       "initials": "BP",
-      "photo": "https://www.figma.com/api/mcp/asset/c6a2a1ef-b0ae-4a3f-b009-aab510823a5e"
+      "photo": "assets/images/bogard.t.paguigan.png"
     }
   ],
   "capabilityLeads": [
@@ -54,15 +54,15 @@
         {
           "subcategory": "Hybris",
           "members": [
-            { "name": "Bryan Mercado", "initials": "BM", "photo": "https://www.figma.com/api/mcp/asset/4dd961be-e5e1-41c0-a204-e1fc8bddd8a5" },
-            { "name": "Robert Lee", "initials": "RL", "photo": "https://www.figma.com/api/mcp/asset/98f49077-d883-4bb1-bb30-80cf11bd44dc" }
+            { "name": "Bryan Mercado", "initials": "BM", "photo": "assets/images/dale.bryan.a.mercado.png" },
+            { "name": "Robert Lee", "initials": "RL", "photo": "assets/images/robert.james.lee.png" }
           ]
         },
         {
           "subcategory": "Salesforce",
           "members": [
             { "name": "Cha Gaires", "initials": "CG", "avatarColor": "#475569" },
-            { "name": "Vic Crisostomo", "initials": "VC", "avatarColor": "#475569" }
+            { "name": "Vic Crisostomo", "initials": "VC", "photo": "assets/images/victor.t.crisostomo.png" }
           ]
         },
         {
@@ -151,7 +151,7 @@
       "name": "Mea Somido",
       "role": "HR Partner",
       "initials": "MS",
-      "photo": "https://www.figma.com/api/mcp/asset/ee636ccb-f496-4de1-b1e6-1903c6e83b55"
+      "photo": "assets/images/maria.mea.somido.png"
     },
     {
       "id": 5,
@@ -172,11 +172,11 @@
       "name": "Madel Binondo / Eds Abuan",
       "role": "Engagement",
       "initials": "MB",
-      "photo": "https://www.figma.com/api/mcp/asset/4dcbf432-2097-4a3e-8eb3-895c443ff059",
+      "photo": "assets/images/ma.l.c.binondo.png",
       "coLead": {
         "name": "Eds Abuan",
         "initials": "EA",
-        "photo": "https://www.figma.com/api/mcp/asset/48442f92-58d3-4da5-a445-beccd66e4e42"
+        "photo": "assets/images/edwin.c.abuan.png"
       }
     }
   ]
