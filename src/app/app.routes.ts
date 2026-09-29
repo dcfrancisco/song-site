@@ -1,5 +1,4 @@
 import { Routes } from '@angular/router';
-import { MyJourneyComponent } from './song-bench/my-journey/my-journey.component';
 
 export const routes: Routes = [
   {
@@ -55,8 +54,8 @@ export const routes: Routes = [
   },
   {
     path: 'journey',
-    loadComponent: () =>
-      import('./song-bench/journey/journey').then(m => m.JourneyComponent)
+    redirectTo: 'my-journey',
+    pathMatch: 'full'
   },
   {
     path: 'my-journey',
@@ -70,8 +69,8 @@ export const routes: Routes = [
   },
   {
     path: 'cv',
-    loadComponent: () =>
-      import('./song-bench/journey/cv/cv').then(m => m.Cv)
+    redirectTo: 'my-cv',
+    pathMatch: 'full'
   },
   {
     path: 'my-cv',
@@ -80,8 +79,8 @@ export const routes: Routes = [
   },
   {
     path: 'skills-matrix',
-    loadComponent: () =>
-      import('./song-bench/journey/skills-matrix/skills-matrix').then(m => m.SkillsMatrix)
+    redirectTo: 'my-skills-matrix',
+    pathMatch: 'full'
   },
   {
     path: 'my-skills-matrix',
@@ -90,8 +89,8 @@ export const routes: Routes = [
   },
   {
     path: 'mycompetency',
-    loadComponent: () =>
-      import('./song-bench/journey/mycompetency/mycompetency').then(m => m.MyCompetency)
+    redirectTo: 'my-mycompetency',
+    pathMatch: 'full'
   },
   {
     path: 'my-mycompetency',
@@ -110,8 +109,8 @@ export const routes: Routes = [
   },
   {
     path: 'workday',
-    loadComponent: () =>
-      import('./song-bench/journey/workday/workday').then(m => m.Workday)
+    redirectTo: 'my-workday',
+    pathMatch: 'full'
   },
   {
     path: 'navbar',

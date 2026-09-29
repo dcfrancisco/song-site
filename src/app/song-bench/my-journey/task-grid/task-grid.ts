@@ -18,6 +18,8 @@ export class TaskGrid {
  @Input() allTrainingCompleted = false;
  @Output() tasksChanged = new EventEmitter<void>();
  selectedTask: any;
+ errorMessage = '';
+ busyTaskId: number | null = null;
 
  constructor(private taskService: TaskService, private router: Router, private modalService: NgbModal) { }
 
@@ -41,22 +43,49 @@ export class TaskGrid {
 
  startTask(task: Task, event?: Event) {
    event?.stopPropagation();
-   this.taskService.updateTaskStatus(task.id, 'start').subscribe(updated => {
-     this.router.navigate([task.url], { state: { task: updated } });
+   this.errorMessage = '';
+   this.busyTaskId = task.id;
+   this.taskService.updateTaskStatus(task.id, 'start').subscribe({
+     next: updated => {
+       this.busyTaskId = null;
+       this.router.navigate([task.url], { state: { task: updated } });
+     },
+     error: () => {
+       this.busyTaskId = null;
+       this.errorMessage = 'The task could not be started. Please try again.';
+     }
    });
  }
 
  completeTask(task: Task, event?: Event) {
    event?.stopPropagation();
-   this.taskService.updateTaskStatus(task.id, 'complete').subscribe(() => {
-     this.tasksChanged.emit();
+   this.errorMessage = '';
+   this.busyTaskId = task.id;
+   this.taskService.updateTaskStatus(task.id, 'complete').subscribe({
+     next: () => {
+       this.busyTaskId = null;
+       this.tasksChanged.emit();
+     },
+     error: () => {
+       this.busyTaskId = null;
+       this.errorMessage = 'The task could not be completed. Please try again.';
+     }
    });
  }
 
  updateTask(task: Task, event?: Event) {
    event?.stopPropagation();
-   this.taskService.updateTaskStatus(task.id, 'start').subscribe(() => {
-     this.tasksChanged.emit();
+   this.errorMessage = '';
+   this.busyTaskId = task.id;
+   this.taskService.updateTaskStatus(task.id, 'start').subscribe({
+     next: () => {
+       this.busyTaskId = null;
+       this.tasksChanged.emit();
+     },
+     error: () => {
+       this.busyTaskId = null;
+       this.errorMessage = 'The task could not be reopened. Please try again.';
+     }
    });
  }
 

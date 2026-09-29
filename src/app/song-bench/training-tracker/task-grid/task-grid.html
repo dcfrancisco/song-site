@@ -82,6 +82,7 @@
       <button
         class="btn start-btn"
         *ngIf="task.status==='Not Started'"
+        [disabled]="busyTaskId === task.id"
         (click)="startTask(task, $event)">
         Start
       </button>
@@ -97,6 +98,7 @@
       <button
         class="btn complete-btn"
         *ngIf="task.status==='In Progress'"
+        [disabled]="busyTaskId === task.id"
         (click)="openCompleteModal(completeTpl, task)">
         ✔ Mark as Completed
       </button>
@@ -104,6 +106,7 @@
       <!-- COMPLETED -->
       <button class="btn update-btn"
         *ngIf="task.status==='Completed'"
+        [disabled]="busyTaskId === task.id"
         (click)="updateTask(task, $event)">
         Update task
       </button>
@@ -115,4 +118,6 @@
     </div>
 
   </div>
+
+  <p class="task-error" *ngIf="errorMessage" role="alert">{{ errorMessage }}</p>
 </div>

@@ -202,6 +202,8 @@ paths:
     get:
       operationId: listJourneyItems
       summary: List Journey items
+      deprecated: true
+      description: Compatibility endpoint for the retired legacy Journey UI. Use /api/tasks for the canonical Journey resource.
       responses:
         '200':
           description: Journey items
@@ -215,6 +217,8 @@ paths:
     put:
       operationId: updateJourneyItem
       summary: Temporarily update a Journey item
+      deprecated: true
+      description: Compatibility endpoint for the retired legacy Journey UI. Use /api/tasks/{id}/status for canonical task transitions.
       security:
         - temporaryAdminKey: []
       parameters:

@@ -33,6 +33,7 @@ This directory contains architecture decision records (ADRs), API contracts, and
 - [ADR-0027: Leadership Organizational Chart](adr/0027-leadership-orgchart.md) - Withdrawn; org-chart implementation deferred
 - [ADR-0028: PostgreSQL Compatibility, Test Layers, and CI Gates](adr/0028-database-test-and-ci-strategy.md) - Proposed for project-owner review
 - [ADR-0029: SSO-Compatible Leadership RBAC and Guest Navigation](adr/0029-sso-compatible-leadership-rbac.md) - Proposed; applies to existing leadership maintenance, with org-chart permissions deferred
+- [ADR-0030: Journey API Source of Truth and State Transitions](adr/0030-journey-api-source-of-truth.md) - Proposed for project-owner review
 
 ## Ownership
 
