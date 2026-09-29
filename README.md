@@ -92,6 +92,19 @@ cd ..
 
 If PowerShell allows the `npm` command directly, `npm` may be used instead of `npm.cmd`.
 
+## Update an existing local database
+
+After pulling changes that add a database migration, update the existing local SQLite database before starting the backend:
+
+```powershell
+cd backend
+npm.cmd run db:migrate
+npm.cmd run db:check
+cd ..
+```
+
+Do not run `db:reset` unless you intentionally want to delete local data. Migrations are applied automatically when the backend loads the database, and `db:migrate` confirms the same migration path explicitly. After updating, restart the backend and refresh the frontend. To verify the Diane leadership photo now uses the local asset, check `GET http://localhost:5001/api/leadership` for `assets/images/diane.r.p.cuasay.jpg`.
+
 ## Start the backend: Terminal 1
 
 ```powershell
