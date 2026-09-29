@@ -31,7 +31,7 @@ export class MyJourneyComponent implements OnInit {
     this.loadTasks();
   }
 
-  loadTasks() {
+  loadTasks(showCongrats = false) {
     forkJoin({
       tasks: this.taskService.getTasks(),
       trainingTasks: this.taskService.getTrainingTasks()
@@ -46,20 +46,20 @@ export class MyJourneyComponent implements OnInit {
         this.taskService.updateTaskStatus(TRAINING_TRACKER_TASK_ID, 'start').subscribe(() => {
           this.taskService.getTasks().subscribe(updated => {
             this.tasks = updated;
-            this.checkAllCompleted();
+            this.openCongratsIfComplete(showCongrats);
             this.cdr.detectChanges();
           });
         });
       } else {
         this.tasks = tasks;
-        this.checkAllCompleted();
+        this.openCongratsIfComplete(showCongrats);
         this.cdr.detectChanges();
       }
     });
   }
 
-  checkAllCompleted() {
-    if (!this.congratsDismissed && this.tasks.length > 0 && this.tasks.every(t => t.status === 'Completed')) {
+  private openCongratsIfComplete(showCongrats: boolean) {
+    if (showCongrats && !this.congratsDismissed && this.tasks.length > 0 && this.tasks.every(t => t.status === 'Completed')) {
       this.showCongratsModal = true;
     }
   }
