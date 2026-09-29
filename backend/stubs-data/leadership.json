@@ -29,14 +29,14 @@
       "category": "Design",
       "name": "Noreena Lagmay",
       "initials": "NL",
-      "photo": "https://www.figma.com/api/mcp/asset/b09a11d3-f30a-49d4-9e98-7dede9028698"
+      "photo": "assets/images/noreena.m.lagmay.png"
     },
     {
       "id": 3,
       "category": "Digital Products",
       "name": "Jam Planta",
       "initials": "JP",
-      "photo": "https://www.figma.com/api/mcp/asset/f5f6556e-fc97-4f72-b9c6-0ea881d855fa"
+      "photo": "assets/images/joseph.k.s.planta.png"
     },
     {
       "id": 4,
@@ -130,7 +130,7 @@
       "name": "Noreena Lagmay",
       "role": "Talent Creation Lead",
       "initials": "NL",
-      "photo": "https://www.figma.com/api/mcp/asset/542edc45-0f59-46c4-bb79-9a47b3b9d189"
+      "photo": "assets/images/noreena.m.lagmay.png"
     },
     {
       "id": 2,
