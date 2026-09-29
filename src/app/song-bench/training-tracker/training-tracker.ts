@@ -15,6 +15,8 @@ import { Footer } from "../../footer/footer";
 export class TrainingTracker {
 
   tasks: TrainingTask[] = [];
+  showCongratsModal = false;
+  congratsDismissed = false;
 
   constructor(private taskService: TrainingTaskService, private cdr: ChangeDetectorRef) {}
 
@@ -22,11 +24,20 @@ export class TrainingTracker {
     this.loadTasks();
   }
 
-  loadTasks() {
+  loadTasks(showCongrats = false) {
     this.taskService.getTasks().subscribe(data => {
       this.tasks = data;
+      if (showCongrats && !this.congratsDismissed && this.tasks.length > 0 && this.tasks.every(task => task.status === 'Completed')) {
+        this.showCongratsModal = true;
+      }
       this.cdr.detectChanges();
     });
+  }
+
+  closeCongratsModal() {
+    this.showCongratsModal = false;
+    this.congratsDismissed = true;
+    this.cdr.detectChanges();
   }
 
   getCompletedCount(): number {

@@ -30,7 +30,19 @@
 
   </div>
 
-  <app-task-grid [tasks]="tasks" (tasksChanged)="loadTasks()"></app-task-grid>
+  <app-task-grid [tasks]="tasks" (tasksChanged)="loadTasks(true)"></app-task-grid>
 
 </section>
+
+<div *ngIf="showCongratsModal" class="congrats-overlay" (click)="closeCongratsModal()">
+  <div class="congrats-modal" (click)="$event.stopPropagation()">
+    <h1 class="congrats-title">Congratulations</h1>
+    <div class="congrats-trophy">
+      <img src="assets/images/CongratsTrophy.png" alt="Trophy" />
+    </div>
+    <p class="congrats-message">You have now completed all {{ tasks.length }} training tasks. To proceed, you may click the close button.</p>
+    <button class="congrats-close-btn" (click)="closeCongratsModal()">Close</button>
+  </div>
+</div>
+
 <app-footer></app-footer>

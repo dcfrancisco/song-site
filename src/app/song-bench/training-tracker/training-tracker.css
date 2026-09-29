@@ -92,3 +92,64 @@
 .navbar-spacer {
   height: 110px;
 }
+
+.congrats-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.7);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
+}
+
+.congrats-modal {
+  background: #7B2FBE;
+  padding: 40px 56px;
+  width: 1250px;
+  max-width: 95vw;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+  box-sizing: border-box;
+}
+
+.congrats-title {
+  font-size: 40px;
+  font-weight: 700;
+  color: #ffffff;
+  margin: 0;
+  text-align: left;
+  width: 100%;
+}
+
+.congrats-trophy img {
+  width: 500px;
+  max-width: 100%;
+  height: auto;
+}
+
+.congrats-message {
+  font-size: 14px;
+  color: #ffffff;
+  line-height: 1.6;
+  margin: 0;
+  text-align: center;
+}
+
+.congrats-close-btn {
+  padding: 10px 48px;
+  border: none;
+  background: #ffffff;
+  color: #7B2FBE;
+  font-size: 15px;
+  font-weight: 600;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: opacity 0.2s;
+}
+
+.congrats-close-btn:hover {
+  opacity: 0.9;
+}
