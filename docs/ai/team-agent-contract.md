@@ -54,9 +54,9 @@ All AI-assisted code MUST follow applicable OWASP secure-coding guidance and Son
 
 After a substantive edit, the next action MUST be the narrowest available check for that slice.
 
-- Frontend: `npm.cmd run test:ci`, `npm.cmd run build:ci`, and focused tests where available.
+- Frontend: `npm run test:ci`, `npm run build:ci`, and focused tests where available.
 - Backend syntax: `node --check <file>`.
-- Backend tests: run from `backend/` with `npm.cmd test`.
+- Backend tests: run from `backend/` with `npm test`.
 - Database changes: exercise migration, seed, check, and reset with a disposable `DATABASE_PATH`.
 - OpenAPI changes: parse `docs/openapi/song-site.yaml` and smoke-test affected endpoints.
 - Security-sensitive API changes: test unauthenticated, unauthorized, malformed, and cross-scope requests.
