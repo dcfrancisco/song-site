@@ -27,7 +27,7 @@ cd ..
 Copy-Item .env.example .env
 ```
 
-Install Node.js 20.20.2 first if `nvm use` reports that it is unavailable. On macOS/Linux, use `cp .env.example .env` instead of `Copy-Item`. Use `npm` instead of `npm.cmd` when working outside PowerShell.
+Install Node.js 20.20.2 first if `nvm use` reports that it is unavailable. On macOS/Linux, use `cp .env.example .env` instead of `Copy-Item`. Use `npm` instead of `npm` when working outside PowerShell.
 
 Frontend CI verification requires normal child-process and IPC access for Angular's esbuild and Vitest workers. Run these commands in a regular terminal or CI runner rather than a process-restricted sandbox:
 
@@ -82,15 +82,15 @@ From the repository root, run these commands before starting the backend:
 
 ```powershell
 cd backend
-npm.cmd run db:migrate
-npm.cmd run db:seed
-npm.cmd run db:check
+npm run db:migrate
+npm run db:seed
+npm run db:check
 cd ..
 ```
 
 `db:migrate` creates the SQLite schema and applies all versioned migrations. The current content is populated by `004-content-data.sql`. `db:seed` is retained as a compatibility command; it does not read JSON files. `db:check` confirms the local database is available and reports the task counts.
 
-If PowerShell allows the `npm` command directly, `npm` may be used instead of `npm.cmd`.
+If PowerShell allows the `npm` command directly, `npm` may be used instead of `npm`.
 
 ## Update an existing local database
 
@@ -98,8 +98,8 @@ After pulling changes that add a database migration, update the existing local S
 
 ```powershell
 cd backend
-npm.cmd run db:migrate
-npm.cmd run db:check
+npm run db:migrate
+npm run db:check
 cd ..
 ```
 
@@ -109,11 +109,11 @@ Do not run `db:reset` unless you intentionally want to delete local data. Migrat
 
 ```powershell
 cd backend
-npm.cmd install
-npm.cmd run db:migrate
-npm.cmd run db:seed
-npm.cmd run db:check
-npm.cmd start
+npm install
+npm run db:migrate
+npm run db:seed
+npm run db:check
+npm start
 ```
 
 Backend URL: `http://localhost:5001`
@@ -150,7 +150,7 @@ Backend unit tests:
 
 ```powershell
 cd backend
-npm.cmd test
+npm test
 cd ..
 ```
 
