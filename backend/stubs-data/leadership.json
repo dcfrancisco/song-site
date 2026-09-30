@@ -80,14 +80,14 @@
         {
           "subcategory": "Manila",
           "members": [
-            { "name": "Renz Bernardo", "initials": "RB", "photo": "https://www.figma.com/api/mcp/asset/31dbcf1e-f375-4c37-9292-b682e56ffe58" },
+            { "name": "Renz Bernardo", "initials": "RB", "photo": "assets/images/renz.p.i.bernardo.png" },
             { "name": "Ariel Poseria", "initials": "AP", "photo": "https://www.figma.com/api/mcp/asset/947f8013-756c-48db-b71e-68cbbcad7407" }
           ]
         },
         {
           "subcategory": "Cebu",
           "members": [
-            { "name": "Lord Allen Hernandez", "initials": "LA", "avatarColor": "#0d9488" }
+            { "name": "Lord Allen Hernandez", "initials": "LA", "avatarColor": "#0d9488", "photo": "assets/images/lord.a.m.hernandez.png" }
           ]
         }
       ]
@@ -99,7 +99,7 @@
         {
           "subcategory": "WEB",
           "members": [
-            { "name": "Francis Abuel", "initials": "FA", "photo": "https://www.figma.com/api/mcp/asset/27185e0a-826b-4cb6-a945-9b9a42dcc2f5" }
+            { "name": "Francis Abuel", "initials": "FA", "photo": "assets/images/francis.j.abuel.png" }
           ]
         },
         {
