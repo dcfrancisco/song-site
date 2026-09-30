@@ -34,6 +34,9 @@ This directory contains architecture decision records (ADRs), API contracts, and
 - [ADR-0028: PostgreSQL Compatibility, Test Layers, and CI Gates](adr/0028-database-test-and-ci-strategy.md) - Proposed for project-owner review
 - [ADR-0029: SSO-Compatible Leadership RBAC and Guest Navigation](adr/0029-sso-compatible-leadership-rbac.md) - Proposed; applies to existing leadership maintenance, with org-chart permissions deferred
 - [ADR-0030: Journey API Source of Truth and State Transitions](adr/0030-journey-api-source-of-truth.md) - Proposed for project-owner review
+- [ADR-0031: Azure Deployment from GitHub Actions](adr/0031-azure-github-deployment-pipeline.md) - Proposed for project-owner review
+- [ADR-0032: Microsoft Entra SSO and API Token Integration](adr/0032-entra-api-token-integration.md) - Proposed for project-owner review
+- [ADR-0033: GitHub Actions Azure Deployment Automation](adr/0033-github-actions-azure-deployment-automation.md) - Proposed for project-owner review
 
 ## Ownership
 
@@ -62,6 +65,7 @@ Local environment variables are documented in [Local development](runbooks/local
 - `openapi/`: versioned API contract and generated artifacts
 - `runbooks/`: local setup, migrations, deployment, and rollback procedures
 - [PostgreSQL Compose runbook](runbooks/postgresql-compose.md) - production-like local stack operations.
+- [Azure deployment setup](runbooks/azure-deployment.md) - Azure resources, GitHub Actions OIDC, Entra configuration, release gates, and rollback planning.
 - [Testing and release runbook](runbooks/testing-and-release.md) - verification and release evidence.
 - [Incident response runbook](runbooks/incident-response.md) - triage, security, data, recovery, and closure.
 - `decisions/`: unresolved architecture questions and accepted follow-up proposals
