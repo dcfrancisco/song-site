@@ -68,6 +68,7 @@ Local environment variables are documented in [Local development](runbooks/local
 - [Azure deployment setup](runbooks/azure-deployment.md) - Azure resources, GitHub Actions OIDC, Entra configuration, release gates, and rollback planning.
 - [Testing and release runbook](runbooks/testing-and-release.md) - verification and release evidence.
 - [Incident response runbook](runbooks/incident-response.md) - triage, security, data, recovery, and closure.
+- [Sond Site overview deck](presentations/song-site-ase-associate-overview.md) - Journey, leadership rendering, and the software delivery framework with presenter notes.
 - `decisions/`: unresolved architecture questions and accepted follow-up proposals
 
 ## Current implementation questions
