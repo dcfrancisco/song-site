@@ -19,8 +19,9 @@ RUN if [ -n "$VITE_AZURE_REDIRECT_URI" ]; then export VITE_AZURE_REDIRECT_URI; f
 
 FROM nginx:1.27-alpine
 ARG NGINX_API_TARGET=ca-song-site-api-dev
+ARG NGINX_API_SCHEME=https
 COPY docker/nginx.conf /etc/nginx/conf.d/default.conf
-RUN sed -i "s|ca-song-site-api-dev|${NGINX_API_TARGET}|g" /etc/nginx/conf.d/default.conf
+RUN sed -i "s|NGINX_API_TARGET|${NGINX_API_TARGET}|g; s|NGINX_API_SCHEME|${NGINX_API_SCHEME}|g" /etc/nginx/conf.d/default.conf
 COPY --from=build /app/dist/song-site/browser /usr/share/nginx/html
 
 EXPOSE 80
