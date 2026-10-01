@@ -8,8 +8,8 @@ function getPostgresPool() {
   if (config.databaseDriver !== "postgres") {
     throw new Error("Set DB_DRIVER=postgres before using PostgreSQL operations");
   }
-  if (!config.databaseUrl) {
-    throw new Error("DATABASE_URL is required for PostgreSQL operations");
+  if (!config.databaseUrl && (!config.postgres.database || !config.postgres.user || !config.postgres.password)) {
+    throw new Error("Set DATABASE_URL or PGDATABASE, PGUSER, and PGPASSWORD for PostgreSQL operations");
   }
 
   const connection = config.databaseUrl

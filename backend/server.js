@@ -6,6 +6,7 @@ const swaggerUi = require("swagger-ui-express");
 const YAML = require("yaml");
 const fs = require("fs");
 const config = require("./config");
+const { checkPostgresConnection } = require("./postgres");
 const database = config.databaseDriver === "postgres"
   ? require("./postgres-database")
   : require("./database");
@@ -14,6 +15,21 @@ const PORT = Number(process.env.PORT || 5001);
 
 app.use(cors());
 app.use(express.json());
+
+app.get("/health/live", (_req, res) => {
+  res.status(200).json({ status: "ok" });
+});
+
+app.get("/health/ready", async (_req, res) => {
+  try {
+    if (config.databaseDriver === "postgres") {
+      await checkPostgresConnection();
+    }
+    res.status(200).json({ status: "ready", database: config.databaseDriver });
+  } catch (error) {
+    res.status(503).json({ status: "not_ready", database: config.databaseDriver, error: error.message });
+  }
+});
 
 function requireTemporaryContentWriteAccess(req, res, next) {
   if (process.env.NODE_ENV !== "production") return next();
@@ -209,7 +225,19 @@ app.put("/api/song-links/:sectionId/:cardId", requireTemporaryContentWriteAccess
 });
 
 if (require.main === module) {
-  app.listen(PORT, () => console.log(`Server running at http://localhost:${PORT}`));
+  app.listen(PORT, "0.0.0.0", () => {
+    console.log(`Server running at http://0.0.0.0:${PORT}`);
+
+    if (config.databaseDriver === "postgres") {
+      const source = config.databaseUrl ? "DATABASE_URL" : "PG* variables";
+      console.log(`Database configured: PostgreSQL ${config.postgres.host}:${config.postgres.port}/${config.postgres.database} ssl=${config.postgres.ssl} source=${source}`);
+      checkPostgresConnection()
+        .then(() => console.log("Database connection: PostgreSQL ready"))
+        .catch((error) => console.error(`Database connection: PostgreSQL unavailable (${error.message})`));
+    } else {
+      console.log(`Database configured: SQLite ${config.databasePath}`);
+    }
+  });
 }
 
 module.exports = { app, database };

@@ -9,7 +9,8 @@
     "test": "ng test",
     "test:ci": "ng test --watch=false --no-progress",
     "build:ci": "ng build --configuration production",
-    "verify": "npm run test:ci && npm run build:ci"
+    "verify": "npm run test:ci && npm run build:ci",
+    "test:docker": "./scripts/docker-smoke-test.sh"
   },
   "private": true,
   "packageManager": "npm@10.8.2",

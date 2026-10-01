@@ -4,5 +4,7 @@ dist
 .local
 .git
 .env
+docs
+scripts
 *.sqlite
 *.sqlite3
