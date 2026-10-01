@@ -1,12 +1,21 @@
-FROM node:24-bookworm-slim AS build
+FROM node:20.20.2-bookworm-slim AS build
 
 WORKDIR /app
 
 COPY package*.json ./
 RUN npm ci --legacy-peer-deps
 
+ARG VITE_AZURE_REDIRECT_URI
+ARG VITE_ENTRA_CLIENT_ID
+ARG VITE_ENTRA_TENANT_ID
+ARG VITE_API_BASE_URL
+
 COPY . ./
-RUN npm run build:ci
+RUN if [ -n "$VITE_AZURE_REDIRECT_URI" ]; then export VITE_AZURE_REDIRECT_URI; fi; \
+    if [ -n "$VITE_ENTRA_CLIENT_ID" ]; then export VITE_ENTRA_CLIENT_ID; fi; \
+    if [ -n "$VITE_ENTRA_TENANT_ID" ]; then export VITE_ENTRA_TENANT_ID; fi; \
+    if [ -n "$VITE_API_BASE_URL" ]; then export VITE_API_BASE_URL; fi; \
+    npm run build:ci
 
 FROM nginx:1.27-alpine
 COPY docker/nginx.conf /etc/nginx/conf.d/default.conf

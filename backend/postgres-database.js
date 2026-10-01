@@ -99,14 +99,15 @@ async function updateTaskStatus(table, id, action) {
 }
 
 async function getLeadership() {
-  const result = await getPostgresPool().query('SELECT * FROM leadership_members WHERE is_active = TRUE ORDER BY section, sort_order');
+  const result = await getPostgresPool().query("SELECT section_name, payload FROM leadership_sections WHERE section_name <> 'orgChart' ORDER BY section_name, item_id");
   const data = {};
-  for (const row of result.rows) (data[row.section] ||= []).push({ id: Number(row.id), name: row.member_name, role: row.title, category: row.category, initials: row.initials, photo: row.photo_url, avatarColor: row.avatar_color, ...(row.co_lead_name ? { coLead: { name: row.co_lead_name, initials: row.co_lead_initials, photo: row.co_lead_photo_url } } : {}) });
+  for (const row of result.rows) (data[row.section_name] ||= []).push(row.payload);
   return data;
 }
 
 async function updateLeadershipItem(section, id, payload) {
-  const result = await getPostgresPool().query('UPDATE leadership_members SET member_name = COALESCE($1, member_name), title = COALESCE($2, title), initials = COALESCE($3, initials), photo_url = COALESCE($4, photo_url), updated_at = NOW() WHERE section = $5 AND id = $6', [payload.name, payload.role, payload.initials, payload.photo, section, id]);
+  const patch = Object.fromEntries(['name', 'role', 'initials', 'photo', 'avatarColor', 'category'].filter((key) => payload[key] !== undefined).map((key) => [key, payload[key]]));
+  const result = await getPostgresPool().query('UPDATE leadership_sections SET payload = payload || $1::jsonb WHERE section_name = $2 AND item_id = $3', [JSON.stringify(patch), section, id]);
   return result.rowCount > 0;
 }
 
