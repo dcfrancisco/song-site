@@ -45,6 +45,7 @@ services:
       args:
         NGINX_API_TARGET: backend:5001
         NGINX_API_SCHEME: http
+        NGINX_API_SSL_NAME: backend:5001
     depends_on:
       backend:
         condition: service_healthy
