@@ -18,7 +18,7 @@ RUN if [ -n "$VITE_AZURE_REDIRECT_URI" ]; then export VITE_AZURE_REDIRECT_URI; f
     npm run build:ci
 
 FROM nginx:1.27-alpine
-ARG NGINX_API_TARGET=ca-song-site-api-dev
+ARG NGINX_API_TARGET=ca-song-site-api-dev.internal.proudtree-05898de0.southeastasia.azurecontainerapps.io
 ARG NGINX_API_SCHEME=https
 ARG NGINX_API_SSL_NAME=ca-song-site-api-dev.internal.proudtree-05898de0.southeastasia.azurecontainerapps.io
 COPY docker/nginx.conf /etc/nginx/conf.d/default.conf
