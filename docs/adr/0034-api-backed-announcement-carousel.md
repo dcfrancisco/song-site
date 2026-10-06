@@ -10,7 +10,9 @@
 
 The dedicated `/announcement` page currently stores its congratulations carousel, training content, and notice copy in Angular component and template files. The four congratulations images are hardcoded in `src/app/announcement/announcement.ts` and are not managed through an API.
 
-The home dashboard already exposes `GET /api/home/announcements` backed by the `home_announcements` database domain. Its current records support dashboard cards with an icon, title, and body, while the dedicated page has no API-backed content contract. The dedicated page contains several sections with different data shapes: a congratulations carousel, training links, notices, and a reminder. Treating all of those sections as dashboard announcement rows would make the existing table a catch-all content store.
+The home dashboard already exposes `GET /api/home/announcements` backed by the `home_announcements` database domain. Its current records support dashboard cards with an icon, title, and body, while the dedicated page has no API-backed content contract. The dedicated page contains several sections with different data shapes: a congratulations carousel, important trainings, new features and important notices, and a reminder. Treating all of those sections as dashboard announcement rows would make the existing table a catch-all content store.
+
+The current dedicated page sources these sections locally: certificate records and image paths, including `congrats1.png` through `congrats4.png`, and the `trainings` array are defined in `src/app/announcement/announcement.ts`; the hero, section headings, notice content, and reminder copy are defined in `src/app/announcement/announcement.html`. None of these sections currently comes from an API or database.
 
 The application must also preserve the existing announcement response shape during implementation. API changes remain OpenAPI-first, database changes must use versioned migrations, and production content writes require identity-backed authorization, validation, audit history, and publication controls. The existing temporary API-key bridge is not a production authorization model.
 
@@ -23,6 +25,8 @@ Create one dedicated page-level announcement API for the `/announcement` route. 
 - `trainings` for training titles, descriptions, and destination links;
 - `notices` for feature and notice content; and
 - `reminder` for the page reminder content.
+
+The `trainings` section must support the current fields used by the page: title, description, destination link, and link label. The `notices` section must support a notice title and body, and the `reminder` section must support its page-level copy. The hero and section headings may remain presentation configuration until the content-management model is finalized, but they are part of the page inventory and must not be silently omitted from the API boundary.
 
 The exact endpoint and mutation payload will be defined OpenAPI-first, but the API boundary is a single page resource rather than separate carousel, training, notice, and reminder APIs. A section discriminator in the response and request model allows the backend to validate and persist each section according to its own shape without requiring separate client calls.
 
@@ -41,7 +45,7 @@ Carousel items will support, at minimum:
 
 The carousel model is intentionally reusable. Congratulations and certification slides are the first content set, but the API must also support future announcement slides without another schema or endpoint redesign.
 
-The dedicated announcement page will eventually consume the aggregate API. Existing repository image files may be used as the initial media references; this ADR does not select long-term binary storage.
+The dedicated announcement page will eventually consume the aggregate API for its carousel, important trainings, notices, and reminder. Existing repository image files may be used as the initial media references; this ADR does not select long-term binary storage.
 
 Implementation must:
 
@@ -50,7 +54,7 @@ Implementation must:
 3. Apply section-specific validation, ordering, active-state behavior, and response shapes consistently across database adapters.
 4. Preserve compatibility for existing home announcement clients and keep their API separate from the page aggregate API.
 5. Add focused backend and frontend tests for the new behavior and failure states.
-6. Replace the dedicated page's hardcoded section data only after the API contract and migrations are implemented.
+6. Replace the dedicated page's hardcoded certificates, training records, notice content, and reminder copy only after the API contract and migrations are implemented.
 
 ## Consequences
 
@@ -60,7 +64,21 @@ The dedicated page requires a new persistence design or dedicated page-content t
 
 The shared endpoint does not by itself solve content governance. Identity-backed authorization, ownership, audit history, preview/staging, scheduling, and publication workflow remain required for production and are tracked through `WP-018` and `WP-033`. The temporary API-key gate must not be treated as the final control.
 
-The aggregate API introduces a broader implementation scope than a carousel-only endpoint, but it prevents the page from developing several incompatible APIs. Static page copy may still be staged separately, but the API boundary is prepared to manage all page sections consistently.
+The aggregate API introduces a broader implementation scope than a carousel-only endpoint, but it prevents the page from developing several incompatible APIs. It also makes the current `Important Trainings` data an explicit managed section instead of leaving it as an untracked component-local array. Static page copy may still be staged separately, but the API boundary is prepared to manage all page sections consistently.
+
+## Known implementation gaps
+
+The current page does not yet implement this decision. The following gaps are explicitly in scope for `WP-024`:
+
+- no dedicated announcement-page API, service, or OpenAPI contract exists;
+- carousel records and the four repository image paths remain hardcoded in `announcement.ts`;
+- the six Important Trainings records, including several placeholder `#` links, remain hardcoded in `announcement.ts`;
+- hero copy, section headings, notices, and reminder copy remain hardcoded in `announcement.html`;
+- carousel and training data have no stable identifiers, explicit ordering, active state, or publication metadata;
+- the page has no loading, error, or empty states, and an empty carousel requires defensive handling before navigation or auto-slide logic runs; and
+- `announcement.specs.ts` does not yet cover rendering, navigation, data loading, or failure states.
+
+The shared navbar logo remains intentional static branding and is excluded from this content migration.
 
 ## Implementation boundary
 
@@ -71,7 +89,8 @@ This ADR records the architecture decision only. It does not add the API fields,
 - The OpenAPI contract defines one page-level aggregate response with explicit, section-specific shapes.
 - SQLite and PostgreSQL migrations persist the dedicated page sections without changing the meaning of existing dashboard announcements.
 - A single page API request returns the required sections, with section-aware validation and update behavior.
-- The dedicated announcement page loads its sections from the aggregate API with loading, empty, error, and invalid-media handling.
+- The dedicated announcement page loads the carousel, Important Trainings, notices, and reminder from the aggregate API with loading, empty, error, and invalid-media handling.
 - Existing home announcement behavior remains functional through its existing API and table.
-- Backend and frontend tests cover section validation, ordering, active state, aggregate response behavior, and carousel rendering states.
+- Training links are validated and no placeholder destinations remain in managed content.
+- Backend and frontend tests cover section validation, ordering, active state, aggregate response behavior, empty/error/loading states, and carousel rendering/navigation states.
 - Production publication controls and identity-backed authorization are implemented before managed content writes are promoted beyond the temporary bridge.
