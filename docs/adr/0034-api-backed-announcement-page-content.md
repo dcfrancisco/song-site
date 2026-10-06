@@ -1,4 +1,4 @@
-# ADR-0034: API-Backed Announcement Carousel
+# ADR-0034: API-Backed Announcement Page Content
 
 - Status: Proposed for project-owner review
 - Date: 2026-10-06

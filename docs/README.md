@@ -37,7 +37,7 @@ This directory contains architecture decision records (ADRs), API contracts, and
 - [ADR-0031: Azure Deployment from GitHub Actions](adr/0031-azure-github-deployment-pipeline.md) - Proposed for project-owner review
 - [ADR-0032: Microsoft Entra SSO and API Token Integration](adr/0032-entra-api-token-integration.md) - Proposed for project-owner review
 - [ADR-0033: GitHub Actions Azure Deployment Automation](adr/0033-github-actions-azure-deployment-automation.md) - Proposed for project-owner review
-- [ADR-0034: API-Backed Announcement Carousel](adr/0034-api-backed-announcement-carousel.md) - Proposed for project-owner review
+- [ADR-0034: API-Backed Announcement Page Content](adr/0034-api-backed-announcement-page-content.md) - Proposed for project-owner review
 
 ## Ownership
 
