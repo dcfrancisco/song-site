@@ -46,6 +46,43 @@ DB_DRIVER=sqlite
 
 Keep real identity values local.
 
+### Local authoring mode
+
+To test authoring and editing without Entra SSO, enable the loopback-only development identity fixtures in `.env`:
+
+```env
+NODE_ENV=development
+AUTH_MODE=development
+HOST=127.0.0.1
+DEV_AUTH_BIND_HOST=127.0.0.1
+DEV_SESSION_SECRET=replace-with-a-private-random-value-at-least-32-characters
+DEV_ALLOWED_ORIGINS=http://localhost:4200,http://127.0.0.1:4200
+DB_DRIVER=sqlite
+```
+
+Do not document or commit the real `DEV_SESSION_SECRET`. Generate a private value locally with:
+
+```powershell
+node -e "console.log(require('crypto').randomBytes(32).toString('base64url'))"
+```
+
+Copy the generated value into `.env`. Validate the configuration from the repository root:
+
+```powershell
+node -e "require('./backend/config'); console.log('backend configuration valid')"
+```
+
+Start the backend and frontend, then open `http://localhost:4200/`. The local development panel provides these fixture identities:
+
+| Fixture | Expected authoring access |
+| --- | --- |
+| No session or **Skip SSO** | Read-only; no authoring controls |
+| Local Author | Edit and save drafts; cannot publish |
+| Local Publisher | Edit, save, restore, and publish |
+| Local Administrator | Edit, publish, restore, and Journey management |
+
+Open `http://localhost:4200/announcement` to test the editing flow. Development authentication is rejected in production and is restricted to loopback requests.
+
 ## Optional development environments
 
 The repository supports multiple local profiles:
