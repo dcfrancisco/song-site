@@ -65,3 +65,11 @@ The implementation is complete only when tests demonstrate that:
 - organizational-chart permissions remain unavailable while `ADR-0027` is deferred;
 - invalid, expired, wrong-audience, or unmapped SSO tokens fail closed;
 - existing SSO login, redirect, logout, and authenticated navigation behavior remains intact.
+
+## 2026-10-13 assessment amendment (status unchanged)
+
+“Do not introduce a second login mechanism” applies to deployed Production Mode. It does not require local developers or automated tests to obtain Entra access. `ADR-0035` proposes an isolated Development Mode provider that is unavailable in production and still enforces leadership permissions on the backend.
+
+For versioned authoring, split the original `leadership:manage` concept into `leadership:edit` and `leadership:publish`, while retaining `leadership:manage` only as a temporary compatibility name if required during migration. Editing covers draft changes and preview; publishing changes the public version. Whether one role receives both permissions requires product-owner approval.
+
+The current `GET/POST/PUT/DELETE /api/leadership/orgchart` routes, repository methods, PostgreSQL seed, and backend test conflict with withdrawn `ADR-0027`; they are not part of leadership authoring and must be removed or explicitly isolated before this work proceeds. The existing grouped leadership read layout remains the supported public presentation.

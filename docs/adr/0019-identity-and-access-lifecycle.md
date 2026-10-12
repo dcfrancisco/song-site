@@ -33,3 +33,11 @@ The system gains a testable identity boundary and avoids treating client-control
 - Which groups or claims map to `member`, `lead`, and `admin`?
 - Who approves access and who can recover the final administrator?
 - What is the deprovisioning SLA and audit retention period?
+
+## 2026-10-13 assessment amendment (status unchanged)
+
+Entra remains the proposed authoritative provider for Production Mode. Local development and automated tests must not require Entra credentials. `ADR-0035` proposes a separate, server-controlled development provider that produces the same internal principal contract while being rejected by production startup safeguards.
+
+Identity records must be keyed by provider, issuer, and subject. Development fixture subjects use an isolated provider namespace and must never reconcile with Entra users by email or display name. Account active state, role assignments, permissions, and author attribution are resolved on the server after authentication.
+
+The implementation should expose one authentication-provider interface with separate Entra and development adapters. This does not authorize the development provider: its startup, session, network, and fixture controls require project-owner approval through `ADR-0035`. The status of this ADR remains proposed.

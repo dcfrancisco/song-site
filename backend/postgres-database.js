@@ -1,4 +1,6 @@
 const { getPostgresPool, closePostgresPool } = require('./postgres');
+const { validateAnnouncementPage } = require('./content/announcement-schema');
+const { ContentConflictError, ContentValidationError } = require('./content/errors');
 
 const taskTypes = { tasks: 'journey', training_tasks: 'training' };
 
@@ -111,42 +113,6 @@ async function updateLeadershipItem(section, id, payload) {
   return result.rowCount > 0;
 }
 
-async function getLeadershipOrgChart() {
-  const result = await getPostgresPool().query(
-    "SELECT payload FROM leadership_sections WHERE section_name = 'orgChart' ORDER BY item_id"
-  );
-  return result.rows.map((row) => row.payload);
-}
-
-async function createLeadershipOrgChartNode(payload) {
-  const nextIdResult = await getPostgresPool().query(
-    "SELECT COALESCE(MAX(item_id), 0) + 1 AS next_id FROM leadership_sections WHERE section_name = 'orgChart'"
-  );
-  const id = Number(nextIdResult.rows[0].next_id);
-  await getPostgresPool().query(
-    `INSERT INTO leadership_sections (section_name, item_id, payload)
-     VALUES ('orgChart', $1, $2)`,
-    [id, { ...payload, id }]
-  );
-  return { ...payload, id };
-}
-
-async function updateLeadershipOrgChartNode(id, payload) {
-  const result = await getPostgresPool().query(
-    "UPDATE leadership_sections SET payload = $1 WHERE section_name = 'orgChart' AND item_id = $2",
-    [{ ...payload, id: Number(id) }, id]
-  );
-  return result.rowCount > 0 ? { ...payload, id: Number(id) } : null;
-}
-
-async function deleteLeadershipOrgChartNode(id) {
-  const result = await getPostgresPool().query(
-    "DELETE FROM leadership_sections WHERE section_name = 'orgChart' AND item_id = $1",
-    [id]
-  );
-  return result.rowCount > 0;
-}
-
 async function getHomeSpotlight() {
   const result = await getPostgresPool().query('SELECT * FROM home_spotlights WHERE is_active = TRUE ORDER BY sort_order');
   return { title: 'Congratulations to our Newly-certified Full Stack Developers!', persons: result.rows.map((row, index) => ({ id: Number(row.id) || index + 1, displayName: row.display_name, fullName: row.full_name, certification: row.certification, headshot: row.headshot_url, bio: row.bio, image: row.image_url })) };
@@ -206,4 +172,39 @@ async function updateJourneyItem(id, updates) {
   return (await getJourneyItems()).find(item => item.id === Number(id)) || null;
 }
 
-module.exports = { createTask, getTasks, getProgress, updateTask, updateTaskStatus, getLeadership, updateLeadershipItem, getLeadershipOrgChart, createLeadershipOrgChartNode, updateLeadershipOrgChartNode, deleteLeadershipOrgChartNode, getHomeSpotlight, updateHomeSpotlight, getAnnouncements, updateAnnouncement, getSongLinks, updateSongLink, getJourneyItems, updateJourneyItem, close: closePostgresPool };
+function toContentVersion(row) {
+  if (!row) return null;
+  return { id: Number(row.id), version: Number(row.version_number), state: row.state, payload: row.payload, authoredBy: row.authored_by, authoredProvider: row.authored_provider, createdAt: row.created_at, publishedAt: row.published_at };
+}
+async function contentDocument(pageKey) { const result = await getPostgresPool().query('SELECT * FROM content_documents WHERE page_key = $1', [pageKey]); if (!result.rows[0]) throw new Error(`Unknown content page: ${pageKey}`); return result.rows[0]; }
+async function getPublishedContent(pageKey) { const doc = await contentDocument(pageKey); const result = await getPostgresPool().query('SELECT * FROM content_versions WHERE id = $1', [doc.published_version_id]); return toContentVersion(result.rows[0]); }
+async function getDraftContent(pageKey) { const doc = await contentDocument(pageKey); const result = await getPostgresPool().query("SELECT * FROM content_versions WHERE document_id = $1 AND state = 'draft' ORDER BY version_number DESC LIMIT 1", [doc.id]); return toContentVersion(result.rows[0]); }
+async function previewContent(pageKey, payload) { await contentDocument(pageKey); const validation = validateAnnouncementPage(payload); if (!validation.valid) throw new ContentValidationError(validation.errors); return { pageKey, valid: true, payload }; }
+async function saveContentDraft(pageKey, payload, principal, expectedVersion, action = 'draft_saved') {
+  const validation = validateAnnouncementPage(payload); if (!validation.valid) throw new ContentValidationError(validation.errors);
+  const doc = await contentDocument(pageKey); const client = await getPostgresPool().connect();
+  try { await client.query('BEGIN'); const current = (await client.query("SELECT * FROM content_versions WHERE document_id = $1 AND state <> 'discarded' ORDER BY version_number DESC LIMIT 1 FOR UPDATE", [doc.id])).rows[0];
+    if (expectedVersion !== undefined && Number(expectedVersion) !== Number(current?.version_number)) throw new ContentConflictError('Content changed since it was loaded', toContentVersion(current));
+    await client.query("UPDATE content_versions SET state = 'superseded' WHERE document_id = $1 AND state = 'draft'", [doc.id]);
+    const version = Number((await client.query('SELECT COALESCE(MAX(version_number), 0) + 1 AS next FROM content_versions WHERE document_id = $1', [doc.id])).rows[0].next);
+    const result = await client.query(`INSERT INTO content_versions (document_id, version_number, state, base_version_number, payload, authored_by, authored_provider, change_summary) VALUES ($1,$2,'draft',$3,$4,$5,$6,'Draft saved') RETURNING *`, [doc.id, version, current?.version_number || null, payload, principal.subject, principal.provider]);
+    await client.query(`INSERT INTO content_audit_events (document_id,version_id,actor_subject,actor_provider,action,source_version,target_version) VALUES ($1,$2,$3,$4,$5,$6,$7)`, [doc.id, result.rows[0].id, principal.subject, principal.provider, action, current?.version_number || null, version]);
+    await client.query('COMMIT'); return toContentVersion(result.rows[0]);
+  } catch (error) { await client.query('ROLLBACK'); throw error; } finally { client.release(); }
+}
+async function publishContent(pageKey, principal, expectedVersion) {
+  const doc = await contentDocument(pageKey); const client = await getPostgresPool().connect();
+  try { await client.query('BEGIN'); const draft = (await client.query("SELECT * FROM content_versions WHERE document_id=$1 AND state='draft' ORDER BY version_number DESC LIMIT 1 FOR UPDATE", [doc.id])).rows[0];
+    if (!draft) throw new ContentValidationError(['A draft is required before publishing']); if (Number(expectedVersion) !== Number(draft.version_number)) throw new ContentConflictError('Content changed since it was loaded', toContentVersion(draft));
+    const version = Number((await client.query('SELECT COALESCE(MAX(version_number),0)+1 AS next FROM content_versions WHERE document_id=$1',[doc.id])).rows[0].next);
+    await client.query("UPDATE content_versions SET state='superseded' WHERE document_id=$1 AND state IN ('draft','published')", [doc.id]);
+    const result = await client.query(`INSERT INTO content_versions (document_id,version_number,state,base_version_number,payload,authored_by,authored_provider,published_by,published_at,change_summary) VALUES ($1,$2,'published',$3,$4,$5,$6,$7,NOW(),'Published announcement content') RETURNING *`, [doc.id,version,draft.version_number,draft.payload,draft.authored_by,draft.authored_provider,principal.subject]);
+    await client.query('UPDATE content_documents SET published_version_id=$1,updated_at=NOW() WHERE id=$2',[result.rows[0].id,doc.id]); await client.query(`INSERT INTO content_audit_events (document_id,version_id,actor_subject,actor_provider,action,target_version) VALUES ($1,$2,$3,$4,'published',$5)`,[doc.id,result.rows[0].id,principal.subject,principal.provider,version]); await client.query('COMMIT'); return toContentVersion(result.rows[0]);
+  } catch (error) { await client.query('ROLLBACK'); throw error; } finally { client.release(); }
+}
+async function discardContentDraft(pageKey, principal) { const doc=await contentDocument(pageKey); const draft=await getDraftContent(pageKey); if(!draft)return null; await getPostgresPool().query("UPDATE content_versions SET state='discarded' WHERE id=$1",[draft.id]); await getPostgresPool().query(`INSERT INTO content_audit_events (document_id,version_id,actor_subject,actor_provider,action,target_version) VALUES ($1,$2,$3,$4,'draft_discarded',$5)`,[doc.id,draft.id,principal.subject,principal.provider,draft.version]); return draft; }
+async function listContentVersions(pageKey) { const doc=await contentDocument(pageKey); const result=await getPostgresPool().query('SELECT * FROM content_versions WHERE document_id=$1 ORDER BY version_number DESC',[doc.id]); return result.rows.map(toContentVersion); }
+async function listContentAuditEvents(pageKey) { const doc=await contentDocument(pageKey); const result=await getPostgresPool().query('SELECT action, actor_subject AS "actorSubject", source_version AS "sourceVersion", target_version AS "targetVersion" FROM content_audit_events WHERE document_id=$1 ORDER BY id DESC',[doc.id]); return result.rows; }
+async function restoreContentVersion(pageKey, versionId, principal, expectedVersion) { const doc=await contentDocument(pageKey); const result=await getPostgresPool().query('SELECT payload FROM content_versions WHERE id=$1 AND document_id=$2',[versionId,doc.id]); if(!result.rows[0])return null; return saveContentDraft(pageKey,result.rows[0].payload,principal,expectedVersion,'restored'); }
+
+module.exports = { createTask, getTasks, getProgress, updateTask, updateTaskStatus, getLeadership, updateLeadershipItem, getHomeSpotlight, updateHomeSpotlight, getAnnouncements, updateAnnouncement, getSongLinks, updateSongLink, getJourneyItems, updateJourneyItem, getPublishedContent, getDraftContent, previewContent, saveContentDraft, discardContentDraft, publishContent, listContentVersions, listContentAuditEvents, restoreContentVersion, close: closePostgresPool };

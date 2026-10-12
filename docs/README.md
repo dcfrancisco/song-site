@@ -38,6 +38,9 @@ This directory contains architecture decision records (ADRs), API contracts, and
 - [ADR-0032: Microsoft Entra SSO and API Token Integration](adr/0032-entra-api-token-integration.md) - Proposed for project-owner review
 - [ADR-0033: GitHub Actions Azure Deployment Automation](adr/0033-github-actions-azure-deployment-automation.md) - Proposed for project-owner review
 - [ADR-0034: API-Backed Announcement Page Content](adr/0034-api-backed-announcement-page-content.md) - Proposed for project-owner review
+- [ADR-0035: Development Authentication and Identity Isolation](adr/0035-development-authentication-and-identity-isolation.md) - Proposed for project-owner review
+- [ADR-0036: Page Authoring Architecture](adr/0036-page-authoring-architecture.md) - Proposed for project-owner review
+- [ADR-0037: Content Versioning and Publication Lifecycle](adr/0037-content-versioning-and-publication-lifecycle.md) - Proposed for project-owner review
 
 ## Ownership
 
@@ -48,6 +51,13 @@ This directory contains architecture decision records (ADRs), API contracts, and
 - `Production readiness`: cross-cutting remediation owned by `danny.c.francisco` under `WP-018`.
 
 See [Work package tracking](work-packages.md) for the current implementation inventory.
+
+See [Authoring and Development Identity Work Packages](work-packages/authoring-development-program.md) for the detailed proposed `WP-035` through `WP-041` sequence.
+
+## Architecture reviews
+
+- [ADR gap analysis](reviews/ADR-GAP-ANALYSIS.md) - evidence review of `ADR-0001` through `ADR-0034`, conflicts, risks, and approval decisions.
+- [Authoring and Development Mode implementation plan](reviews/AUTHORING-DEV-MODE-IMPLEMENTATION-PLAN.md) - proposed UX, architecture, stages, acceptance criteria, and verification strategy.
 
 See [API and data inventory](api-data-inventory.md) for the complete site review.
 

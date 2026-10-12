@@ -2,11 +2,108 @@ openapi: 3.0.3
 info:
   title: Song Site API
   version: 0.1.0
-  description: OpenAPI-first contract for Journey, training, and content workflows. SQLite is the local adapter and PostgreSQL is the production adapter; both expose the same response shapes. Temporary mutation routes accept local development requests without a key; non-development deployments require the X-Admin-Key bridge until identity and RBAC are implemented.
+  description: OpenAPI-first contract for public reads, backend-authenticated mutations, and page authoring. Guest reads are public; mutations require a server-resolved principal.
 servers:
   - url: http://localhost:5001
     description: Local backend
 paths:
+  /api/v1/session:
+    get:
+      operationId: getSession
+      summary: Get effective access mode and identity summary
+      responses:
+        '200':
+          description: Session summary
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/SessionSummary' }
+  /api/v1/dev/session:
+    post:
+      operationId: startDevelopmentSession
+      requestBody:
+        required: true
+        content: { application/json: { schema: { type: object, required: [fixture], properties: { fixture: { type: string, enum: [developer, author, publisher, administrator] } } } } }
+      responses: { '200': { description: Local session created }, '404': { $ref: '#/components/responses/NotFound' } }
+    delete:
+      operationId: endDevelopmentSession
+      security: [{ developmentSession: [] }]
+      responses: { '204': { description: Local session ended } }
+  /api/v1/content/pages/{pageKey}:
+    get:
+      operationId: getPublishedPageContent
+      summary: Get published page content
+      parameters:
+        - { name: pageKey, in: path, required: true, schema: { type: string, enum: [announcement-page] } }
+      responses:
+        '200':
+          description: Published page version
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ContentVersion' }
+  /api/v1/authoring/pages/{pageKey}/draft:
+    get:
+      operationId: getPageDraft
+      security: [{ developmentSession: [] }]
+      parameters:
+        - { name: pageKey, in: path, required: true, schema: { type: string, enum: [announcement-page] } }
+      responses: { '200': { description: Draft or null } }
+    put:
+      operationId: savePageDraft
+      security: [{ developmentSession: [] }]
+      parameters:
+        - { name: pageKey, in: path, required: true, schema: { type: string, enum: [announcement-page] } }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [payload]
+              properties:
+                expectedVersion: { type: integer }
+                payload: { $ref: '#/components/schemas/AnnouncementPage' }
+      responses: { '200': { description: Draft saved }, '401': { $ref: '#/components/responses/Unauthorized' }, '403': { $ref: '#/components/responses/Forbidden' }, '409': { $ref: '#/components/responses/Conflict' }, '422': { $ref: '#/components/responses/ValidationError' } }
+    delete:
+      operationId: discardPageDraft
+      security: [{ developmentSession: [] }]
+      parameters:
+        - { name: pageKey, in: path, required: true, schema: { type: string, enum: [announcement-page] } }
+      responses: { '200': { description: Draft discarded } }
+  /api/v1/authoring/pages/{pageKey}/preview:
+    post:
+      operationId: previewPage
+      security: [{ developmentSession: [] }]
+      parameters: [{ name: pageKey, in: path, required: true, schema: { type: string, enum: [announcement-page] } }]
+      requestBody:
+        required: true
+        content: { application/json: { schema: { type: object, required: [payload], properties: { payload: { $ref: '#/components/schemas/AnnouncementPage' } } } } }
+      responses: { '200': { description: Validated preview }, '422': { $ref: '#/components/responses/ValidationError' } }
+  /api/v1/authoring/pages/{pageKey}/publish:
+    post:
+      operationId: publishPage
+      security: [{ developmentSession: [] }]
+      parameters: [{ name: pageKey, in: path, required: true, schema: { type: string, enum: [announcement-page] } }]
+      requestBody:
+        required: true
+        content: { application/json: { schema: { type: object, required: [expectedVersion], properties: { expectedVersion: { type: integer } } } } }
+      responses: { '200': { description: Published version }, '403': { $ref: '#/components/responses/Forbidden' }, '409': { $ref: '#/components/responses/Conflict' } }
+  /api/v1/authoring/pages/{pageKey}/versions:
+    get:
+      operationId: listPageVersions
+      security: [{ developmentSession: [] }]
+      parameters: [{ name: pageKey, in: path, required: true, schema: { type: string, enum: [announcement-page] } }]
+      responses: { '200': { description: Version history } }
+  /api/v1/authoring/pages/{pageKey}/versions/{versionId}/restore:
+    post:
+      operationId: restorePageVersion
+      security: [{ developmentSession: [] }]
+      parameters:
+        - { name: pageKey, in: path, required: true, schema: { type: string, enum: [announcement-page] } }
+        - { name: versionId, in: path, required: true, schema: { type: integer } }
+      requestBody:
+        required: true
+        content: { application/json: { schema: { type: object, required: [expectedVersion], properties: { expectedVersion: { type: integer } } } } }
+      responses: { '200': { description: New restored draft }, '403': { $ref: '#/components/responses/Forbidden' }, '409': { $ref: '#/components/responses/Conflict' } }
   /api/tasks:
     get:
       operationId: listJourneyTasks
@@ -24,7 +121,7 @@ paths:
       operationId: createJourneyTask
       summary: Create a Journey task
       security:
-        - temporaryAdminKey: []
+        - developmentSession: []
       requestBody:
         required: true
         content:
@@ -43,7 +140,7 @@ paths:
       operationId: updateJourneyTask
       summary: Update a Journey task
       security:
-        - temporaryAdminKey: []
+        - developmentSession: []
       parameters:
         - $ref: '#/components/parameters/TaskId'
       requestBody:
@@ -66,7 +163,7 @@ paths:
       operationId: updateJourneyTaskStatus
       summary: Transition a Journey task status
       security:
-        - temporaryAdminKey: []
+        - developmentSession: []
       parameters:
         - $ref: '#/components/parameters/TaskId'
       requestBody:
@@ -112,7 +209,7 @@ paths:
       operationId: createTrainingTask
       summary: Create a training task
       security:
-        - temporaryAdminKey: []
+        - developmentSession: []
       requestBody:
         required: true
         content:
@@ -131,7 +228,7 @@ paths:
       operationId: updateTrainingTask
       summary: Update a training task
       security:
-        - temporaryAdminKey: []
+        - developmentSession: []
       parameters:
         - $ref: '#/components/parameters/TaskId'
       requestBody:
@@ -154,7 +251,7 @@ paths:
       operationId: updateTrainingTaskStatus
       summary: Transition a training task status
       security:
-        - temporaryAdminKey: []
+        - developmentSession: []
       parameters:
         - $ref: '#/components/parameters/TaskId'
       requestBody:
@@ -220,7 +317,7 @@ paths:
       deprecated: true
       description: Compatibility endpoint for the retired legacy Journey UI. Use /api/tasks/{id}/status for canonical task transitions.
       security:
-        - temporaryAdminKey: []
+        - developmentSession: []
       parameters:
         - $ref: '#/components/parameters/TaskId'
       requestBody:
@@ -244,7 +341,7 @@ paths:
       operationId: updateLeadershipItem
       summary: Temporarily update a leadership item
       security:
-        - temporaryAdminKey: []
+        - developmentSession: []
       requestBody:
         required: true
         content:
@@ -270,7 +367,7 @@ paths:
       operationId: updateHomeSpotlight
       summary: Temporarily update home spotlight content
       security:
-        - temporaryAdminKey: []
+        - developmentSession: []
       requestBody:
         required: true
         content:
@@ -297,7 +394,7 @@ paths:
       operationId: updateAnnouncement
       summary: Temporarily update a home announcement
       security:
-        - temporaryAdminKey: []
+        - developmentSession: []
       requestBody:
         required: true
         content:
@@ -333,7 +430,7 @@ paths:
       operationId: updateSongLink
       summary: Temporarily update a Song Link card
       security:
-        - temporaryAdminKey: []
+        - developmentSession: []
       requestBody:
         required: true
         content:
@@ -346,11 +443,11 @@ paths:
         '404': { $ref: '#/components/responses/NotFound' }
 components:
   securitySchemes:
-    temporaryAdminKey:
+    developmentSession:
       type: apiKey
-      in: header
-      name: X-Admin-Key
-      description: Temporary bridge only. Replace with identity-backed authorization before production use.
+      in: cookie
+      name: song_site_dev_session
+      description: Local-only HttpOnly session. Production uses the Entra provider instead.
   parameters:
     TaskId:
       name: id
@@ -360,6 +457,18 @@ components:
         type: integer
         format: int64
   responses:
+    Unauthorized:
+      description: Authentication required
+      content: { application/json: { schema: { $ref: '#/components/schemas/Error' } } }
+    Forbidden:
+      description: Permission or CSRF check failed
+      content: { application/json: { schema: { $ref: '#/components/schemas/Error' } } }
+    Conflict:
+      description: Optimistic concurrency conflict
+      content: { application/json: { schema: { $ref: '#/components/schemas/Error' } } }
+    ValidationError:
+      description: Content validation failed
+      content: { application/json: { schema: { $ref: '#/components/schemas/ValidationError' } } }
     NotFound:
       description: Resource not found
       content:
@@ -439,6 +548,38 @@ components:
         icon: { type: string }
         title: { type: string }
         body: { type: string }
+    SessionSummary:
+      type: object
+      required: [mode, authenticated, developmentFixtures]
+      properties:
+        mode: { type: string, enum: [guest, development, entra] }
+        authenticated: { type: boolean }
+        identity: { type: object, nullable: true }
+        developmentFixtures: { type: array, items: { type: object } }
+    AnnouncementPage:
+      type: object
+      additionalProperties: false
+      required: [schemaVersion, hero, carousel, trainings, notices, reminder]
+      properties:
+        schemaVersion: { type: integer, enum: [1] }
+        hero: { type: object, required: [title, body], properties: { title: { type: string }, body: { type: string } } }
+        carousel: { type: array, items: { type: object, required: [id, name, image, body], properties: { id: { type: string }, name: { type: string }, image: { type: string }, body: { type: string }, order: { type: integer } } } }
+        trainings: { type: array, items: { type: object, required: [id, title, description, link, linkLabel], properties: { id: { type: string }, title: { type: string }, description: { type: string }, link: { type: string, format: uri-reference }, linkLabel: { type: string }, order: { type: integer } } } }
+        notices: { type: array, items: { type: object, required: [id, title, body], properties: { id: { type: string }, title: { type: string }, body: { type: string }, order: { type: integer } } } }
+        reminder: { type: object, required: [title, body], properties: { title: { type: string }, body: { type: string } } }
+    ContentVersion:
+      type: object
+      required: [id, version, state, payload]
+      properties:
+        id: { type: integer }
+        version: { type: integer }
+        state: { type: string, enum: [draft, published, superseded, discarded] }
+        payload: { $ref: '#/components/schemas/AnnouncementPage' }
+    ValidationError:
+      allOf:
+        - $ref: '#/components/schemas/Error'
+        - type: object
+          properties: { errors: { type: array, items: { type: string } } }
     Error:
       type: object
       required: [error]

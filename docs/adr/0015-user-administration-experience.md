@@ -35,3 +35,11 @@ User administration has a clear landing page and API boundary separate from lead
 - It will not expose unrestricted user data to ordinary members.
 - It will not treat workstation or device administrator rights as application roles.
 - It will not be marked implemented until the route, API, database migration, authorization checks, and negative tests exist.
+
+## 2026-10-13 assessment amendment (status unchanged)
+
+Development identities defined by `ADR-0035` are fixtures, not production users. `/admin/users` must not create, edit, assign roles to, or promote development fixtures, and development fixtures must never be synchronized into a production identity store.
+
+The user-administration design depends on normalized `roles`, `permissions`, `user_roles`, and `role_permissions`; the current single `users.role` column in `backend/migrations/005-relational-content.sql` and `backend/migrations-postgres/005-relational-content.sql` does not implement this ADR. Authoring roles and page-scoped permissions must use the same backend assignment model after stakeholder approval.
+
+Admin bootstrap and final-administrator recovery remain production decisions. Development Mode may exercise those flows with isolated test data, but it is not a production break-glass path and must not establish production authorization policy.
