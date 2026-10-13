@@ -1,5 +1,6 @@
 const path = require("path");
 require("dotenv").config({ path: path.join(__dirname, "..", ".env") });
+const { createAuthConfig } = require("./auth/config");
 
 const databaseDriver = (process.env.DB_DRIVER || "sqlite").toLowerCase();
 if (!["sqlite", "postgres"].includes(databaseDriver)) {
@@ -10,6 +11,7 @@ module.exports = {
   databaseDriver,
   databasePath: process.env.DATABASE_PATH || path.join(__dirname, "..", ".local", "song-site.sqlite"),
   databaseUrl: process.env.DATABASE_URL || "",
+  auth: createAuthConfig(process.env),
   postgres: {
     host: process.env.PGHOST || "localhost",
     port: Number(process.env.PGPORT || 5432),

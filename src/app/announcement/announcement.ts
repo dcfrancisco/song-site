@@ -1,13 +1,16 @@
-import { Component, OnInit, OnDestroy } from '@angular/core';
+import { Component, OnInit, OnDestroy, signal, inject } from '@angular/core';
 import { RouterModule } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { Navbar } from "../navbar/navbar";
 import { Footer } from "../footer/footer";
+import { AnnouncementPageContent, AnnouncementService } from './announcement.service';
+import { SessionService } from '../auth/session.service';
+import { AnnouncementEditorComponent } from './announcement-editor.component';
 
 @Component({
   selector: 'app-announcement',
   standalone: true,
-  imports: [RouterModule, CommonModule, Navbar, Footer],
+  imports: [RouterModule, CommonModule, Navbar, Footer, AnnouncementEditorComponent],
   templateUrl: './announcement.html',
   styleUrls: ['./announcement.css']
 })
@@ -15,56 +18,27 @@ export class Announcement implements OnInit, OnDestroy {
 
   activeIndex = 0;
   autoSlideInterval: any;
+  readonly loading = signal(true);
+  readonly loadError = signal('');
+  readonly content = signal<AnnouncementPageContent | null>(null);
+  readonly editing = signal(false);
+  private readonly sessionService = inject(SessionService);
+  readonly session = this.sessionService.session;
+  readonly canEdit = () => this.session().identity?.permissions.includes('content:announcement-page:edit') ?? false;
 
-  certificates = [
-    { name: 'Mark Anthony Bayona', image: 'assets/images/congrats1.png' },
-    { name: 'Alison Ignacio', image: 'assets/images/congrats2.png' },
-    { name: 'Ardione David', image: 'assets/images/congrats3.png' },
-    { name: 'Henry Fernandez', image: 'assets/images/congrats4.png' }
-  ];
+  constructor(private readonly announcementService: AnnouncementService) {}
 
-  trainings = [
-    {
-      title: 'Technology Quotient (TQ)',
-      description: 'New technologies are helping our clients reinvent their businesses. Stay relevant and take this time to complete foundational courses on new technologies.',
-      link: 'https://www.pluralsight.com',
-      linkLabel: 'Pluralsight'
-    },
-    {
-      title: 'Gen AI Trainings',
-      description: 'Gen AI is rapidly changing the world and has revolutionized the way we work. You are encouraged to learn more and use this cutting-edge technology so you can do your share in helping Accenture and our clients maximize the true value that Gen AI can bring.',
-      link: '#',
-      linkLabel: 'Buhay Accenture'
-    },
-    {
-      title: 'Workday: Required Trainings',
-      description: 'Visit Learning Home in Workday and find required trainings you need to take on the Required for you section.',
-      link: '#',
-      linkLabel: 'Workday'
-    },
-    {
-      title: 'Global Mental Health Ally Training',
-      description: 'The Mental Health Ally (MHA) Program is a global initiative that equips people to foster a supportive, inclusive workplace. As an ally, you will learn how to listen, respond with confidence, and connect colleagues to appropriate support.',
-      link: '#',
-      linkLabel: 'Workday'
-    },
-    {
-      title: 'IS Gold Advocate',
-      description: 'Achieve a Top Notch Secure Behavior Score by staying up to date with your IS Advocate training and other recommended actions.',
-      link: '#',
-      linkLabel: 'ISA Dashboard'
-    },
-    {
-      title: 'Coding Standards',
-      description: 'The main objective of coding standards is to define a set of rules and principles to distinguish good code from bad code, so that we can understand how to write code that adheres to good practices.',
-      link: '#',
-      linkLabel: 'CIO Organization'
-    }
-  ];
+  get certificates() { return this.content()?.carousel ?? []; }
+  get trainings() { return this.content()?.trainings ?? []; }
 
   ngOnInit(): void {
+    void this.sessionService.refresh().catch(() => undefined);
+    void this.announcementService.getPublished().then(value => { this.content.set(value); this.loading.set(false); this.startAutoSlide(); }).catch(() => { this.loadError.set('Announcements are temporarily unavailable.'); this.loading.set(false); });
     this.startAutoSlide();
   }
+
+  openEditor(): void { this.editing.set(true); }
+  closeEditor(): void { this.editing.set(false); void this.announcementService.getPublished().then(value => this.content.set(value)); }
 
   ngOnDestroy(): void {
     this.stopAutoSlide();
@@ -83,15 +57,18 @@ export class Announcement implements OnInit, OnDestroy {
   }
 
   next(): void {
+    if (!this.certificates.length) return;
     this.activeIndex = (this.activeIndex + 1) % this.certificates.length;
   }
 
   prev(): void {
+    if (!this.certificates.length) return;
     this.activeIndex =
       (this.activeIndex - 1 + this.certificates.length) % this.certificates.length;
   }
 
   setIndex(index: number): void {
+    if (!this.certificates.length) return;
     this.activeIndex = index;
   }
 

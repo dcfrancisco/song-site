@@ -4,6 +4,9 @@
   font-family: 'Graphik', Arial, sans-serif;
 }
 
+.authoring-entry { position: relative; z-index: 1001; display: flex; justify-content: space-between; gap: 12px; align-items: center; margin-top: 88px; padding: 12px 80px; color: #f5f2ff; background: #25053d; border-bottom: 1px solid #7335a5; }
+.authoring-entry button { color: #fff; background: #7d1bb2; border: 1px solid #c77df0; border-radius: 5px; padding: 8px 14px; cursor: pointer; }
+
 /* ─── HERO ─────────────────────────────────────────────── */
 .hero-section {
   background: radial-gradient(circle at 60% 40%, #2a0050 0%, #0d001a 50%, #000 100%);

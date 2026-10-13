@@ -46,6 +46,43 @@ DB_DRIVER=sqlite
 
 Keep real identity values local.
 
+### Local authoring mode
+
+To test authoring and editing without Entra SSO, enable the loopback-only development identity fixtures in `.env`:
+
+```env
+NODE_ENV=development
+AUTH_MODE=development
+HOST=127.0.0.1
+DEV_AUTH_BIND_HOST=127.0.0.1
+DEV_SESSION_SECRET=replace-with-a-private-random-value-at-least-32-characters
+DEV_ALLOWED_ORIGINS=http://localhost:4200,http://127.0.0.1:4200
+DB_DRIVER=sqlite
+```
+
+Do not document or commit the real `DEV_SESSION_SECRET`. Generate a private value locally with:
+
+```powershell
+node -e "console.log(require('crypto').randomBytes(32).toString('base64url'))"
+```
+
+Copy the generated value into `.env`. Validate the configuration from the repository root:
+
+```powershell
+node -e "require('./backend/config'); console.log('backend configuration valid')"
+```
+
+Start the backend and frontend, then open `http://localhost:4200/`. The local development panel provides these fixture identities:
+
+| Fixture | Expected authoring access |
+| --- | --- |
+| No session or **Skip SSO** | Read-only; no authoring controls |
+| Local Author | Edit and save drafts; cannot publish |
+| Local Publisher | Edit, save, restore, and publish |
+| Local Administrator | Edit, publish, restore, and Journey management |
+
+Open `http://localhost:4200/announcement` to test the editing flow. Development authentication is rejected in production and is restricted to loopback requests.
+
 ## Optional development environments
 
 The repository supports multiple local profiles:
@@ -119,6 +156,18 @@ npm start
 Backend URL: `http://localhost:5001`
 
 Swagger UI: `http://localhost:5001/api-docs` when `NODE_ENV=development` and `SWAGGER_UI=true`.
+
+### Authenticate Swagger for protected endpoints
+
+Swagger requests to protected authoring and RBAC endpoints require a local development session. Open Swagger from the backend origin at `http://localhost:5001/api-docs`, then execute `POST /api/v1/dev/session` with an administrator fixture:
+
+```json
+{
+	"fixture": "administrator"
+}
+```
+
+The response sets an HttpOnly development session cookie. Execute the protected request again after the session is created. `401 Authentication is required` means the request did not include a valid session cookie. `403` means the session is valid but its persisted RBAC roles do not include the required permission. Opening Swagger from a different origin can prevent the cookie from being sent.
 
 ## Start the frontend: Terminal 2
 

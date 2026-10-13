@@ -94,3 +94,11 @@ This ADR records the architecture decision only. It does not add the API fields,
 - Training links are validated and no placeholder destinations remain in managed content.
 - Backend and frontend tests cover section validation, ordering, active state, aggregate response behavior, empty/error/loading states, and carousel rendering/navigation states.
 - Production publication controls and identity-backed authorization are implemented before managed content writes are promoted beyond the temporary bridge.
+
+## 2026-10-13 assessment amendment (status unchanged)
+
+The aggregate page schema remains page-specific, but its editing workflow must use the shared authoring shell and API lifecycle proposed by `ADR-0036`. Drafts, immutable publication versions, author attribution, audit, optimistic concurrency, restore, and Discard behavior are governed by `ADR-0037`.
+
+The first implementation should migrate the current component-local values into an initial published version, then switch the existing renderer to the published API without changing its layout. Edit controls belong in page-specific Announcement editor components; a generic arbitrary-HTML editor is out of scope.
+
+The proposed aggregate contract must distinguish public published reads from protected draft/history operations and define typed schemas for `hero`, `carousel`, `trainings`, `notices`, and `reminder`. Existing `additionalProperties: true` patterns are not adequate for authoring writes. This amendment records dependencies only; this ADR remains proposed and unimplemented.

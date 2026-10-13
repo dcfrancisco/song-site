@@ -27,5 +27,18 @@
         Skip SSO
       </button>
     </div>
+
+    @if (session().mode === 'development') {
+      <section class="dev-auth-panel">
+        <p><strong>Local Development Mode</strong> — Guest remains read-only.</p>
+        @if (session().authenticated) { <p>Active identity: <strong>{{ session().identity?.displayName }}</strong> ({{ session().identity?.role }})</p> }
+        <div class="actions">
+          @for (fixture of session().developmentFixtures; track fixture.name) {
+            <button class="secondary-action" type="button" (click)="useDevelopmentFixture(fixture.name)">{{ fixture.displayName }}</button>
+          }
+          @if (session().authenticated) { <button class="secondary-action" type="button" (click)="endDevelopmentSession()">End local session</button> }
+        </div>
+      </section>
+    }
   </section>
 </main>

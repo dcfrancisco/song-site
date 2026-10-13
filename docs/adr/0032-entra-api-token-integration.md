@@ -57,3 +57,11 @@ Implementation is complete only when tests demonstrate:
 - guest public reads continue to work;
 - user identity reconciliation and role changes are auditable;
 - the temporary admin-key bridge is disabled after the replacement path is verified.
+
+## 2026-10-13 assessment amendment (status unchanged)
+
+This ADR governs Production Mode only. Development Mode under `ADR-0035` is a separate provider behind the same server-side principal and permission interfaces; it must not accept Entra-looking client claims, and Production Mode must reject development sessions and fixtures.
+
+Local unit, integration, and browser tests must run without real Entra credentials. Entra-specific contract tests use signed test tokens from an isolated test issuer or mock the token-verifier boundary; they do not call the organization's tenant. Release qualification with the approved tenant, SPA/API registrations, delegated scope, app roles/groups, and redirect URIs remains blocked until organizational access and owner decisions are available.
+
+The Angular application should obtain effective identity and permissions from a backend session/me contract for presentation. That response never replaces bearer-token validation or route-level authorization. The status of this ADR remains proposed and no production authentication behavior is changed by this clarification.

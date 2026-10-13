@@ -163,10 +163,6 @@ VALUES
   ('enablementChampions', 'Noreena Lagmay', 'Talent Creation Lead', 'NL', 1)
 ON CONFLICT DO NOTHING;
 
-INSERT INTO leadership_sections (section_name, item_id, payload)
-VALUES ('orgChart', 1, '{"id":1,"name":"Leadership Team","role":"Executive Leadership","parentId":null,"sortOrder":0}')
-ON CONFLICT DO NOTHING;
-
 INSERT INTO home_announcements (icon, title, body, sort_order)
 VALUES ('notification', 'Important Trainings', 'Please complete the required training modules.', 1)
 ON CONFLICT DO NOTHING;

@@ -45,3 +45,11 @@ A unified domain reduces duplicate authoring and makes publication and audit beh
 - Which content requires audience targeting, start/end dates, or approval?
 - Are certificates and training resources announcements, or separate content domains?
 - What is the migration and retirement plan for the component-local arrays on the dedicated Announcement page?
+
+## 2026-10-13 assessment amendment (status unchanged)
+
+`ADR-0034` narrows the proposed direction: dashboard announcement cards remain their own compatibility domain, while the dedicated `/announcement` page uses one page aggregate with section-specific schemas. This resolves the earlier either/or recommendation at the design level, subject to project-owner approval of both proposed ADRs.
+
+The aggregate must use the shared authoring lifecycle in `ADR-0036` and version/publication model in `ADR-0037`. It must not introduce a standalone direct-to-live update path. Announcement authors and publishers require separate backend permissions unless the product owner approves one combined role. Existing `PUT /api/home/announcements/:id` behavior is not proof of authoring capability because it has no draft, preview, version, audit, or identity-backed authorization.
+
+The dedicated page is the recommended first editor because its hardcoded sections are already inventoried and its public layout can be preserved. This amendment does not approve the proposal or mark any page content migrated.

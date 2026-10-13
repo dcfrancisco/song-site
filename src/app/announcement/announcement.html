@@ -1,11 +1,23 @@
 <app-navbar></app-navbar>
 
+@if (canEdit()) {
+  <div class="authoring-entry">
+    <span>Development identity: {{ session().identity?.displayName }} ({{ session().identity?.role }})</span>
+    <button type="button" (click)="openEditor()">{{ editing() ? 'Edit Mode active' : 'Enter Edit Mode' }}</button>
+  </div>
+}
+@if (editing()) { <app-announcement-editor (cancel)="closeEditor()"></app-announcement-editor> }
+
+@if (loading()) { <p class="section-subtitle">Loading announcements...</p> }
+  @if (loadError()) { <p class="section-subtitle">{{ loadError() }}</p> }
+  @if (content(); as page) {
+
 <div class="announcement-page">
 
   <!-- HERO -->
   <div class="hero-section">
-    <h1>Announcements</h1>
-    <p>Please stay updated with the latest changes and announcements to ensure the best experience while using the application.</p>
+    <h1>{{ page.hero.title }}</h1>
+    <p>{{ page.hero.body }}</p>
   </div>
 
   <!-- CAROUSEL SECTION -->
@@ -76,8 +88,7 @@
       <h2>New Features and Important Notices</h2>
       <p class="section-subtitle">Please stay updated with the latest changes and announcements to ensure the best experience while using the application.</p>
       <div class="notice-card">
-        <h4>New feature: Carousel</h4>
-        <p>Certificate Gallery have been added to make your experience more interactive and engaging.</p>
+        @for (notice of page.notices; track notice.id) { <h4>{{ notice.title }}</h4><p>{{ notice.body }}</p> }
       </div>
     </div>
   </div>
@@ -85,10 +96,11 @@
   <!-- REMINDER -->
   <div class="reminder-section">
     <div class="reminder-inner">
-      <h2>Reminder</h2>
-      <p>Don't forget to check your latest updates and complete pending tasks to stay up to date with the system.</p>
+      <h2>{{ page.reminder.title }}</h2>
+      <p>{{ page.reminder.body }}</p>
     </div>
   </div>
 
-</div>
+  </div>
+  }
 <app-footer></app-footer>
