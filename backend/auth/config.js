@@ -16,10 +16,14 @@ function createAuthConfig(environment = process.env) {
   const authMode = String(environment.AUTH_MODE || (nodeEnv === 'production' ? 'guest' : 'guest')).toLowerCase();
   const host = environment.HOST || (nodeEnv === 'development' ? '127.0.0.1' : '0.0.0.0');
   const sessionSecret = environment.DEV_SESSION_SECRET || '';
-  const allowedOrigins = parseAllowedOrigins(environment.DEV_ALLOWED_ORIGINS);
+  const backendPort = Number(environment.PORT || 5001);
+  const configuredOrigins = parseAllowedOrigins(environment.DEV_ALLOWED_ORIGINS);
   const deploymentMarker = environment.DEPLOYMENT_ENV || environment.WEBSITE_HOSTNAME || environment.CONTAINER_APP_NAME || '';
   const isDevelopmentAuth = authMode === 'development';
   const allowContainerDevelopmentAuth = String(environment.DEV_AUTH_CONTAINER_OVERRIDE || '').toLowerCase() === 'true';
+  const allowedOrigins = isDevelopmentAuth
+    ? [...new Set([...configuredOrigins, `http://localhost:${backendPort}`, `http://127.0.0.1:${backendPort}`])]
+    : configuredOrigins;
 
   if (!['guest', 'development', 'entra'].includes(authMode)) {
     throw new Error('AUTH_MODE must be guest, development, or entra');
