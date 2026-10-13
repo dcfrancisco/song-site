@@ -75,7 +75,7 @@ if (swaggerEnabled) {
   const openApiDocument = YAML.parse(fs.readFileSync(openApiPath, "utf8"));
   app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(openApiDocument, {
     swaggerOptions: {
-      requestInterceptor(request) {
+      requestInterceptor: function requestInterceptor(request) {
         request.credentials = "include";
         return request;
       },
