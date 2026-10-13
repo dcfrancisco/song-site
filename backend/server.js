@@ -73,7 +73,14 @@ const swaggerEnabled = process.env.NODE_ENV === "development" && process.env.SWA
 if (swaggerEnabled) {
   const openApiPath = path.join(__dirname, "..", "docs", "openapi", "song-site.yaml");
   const openApiDocument = YAML.parse(fs.readFileSync(openApiPath, "utf8"));
-  app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(openApiDocument));
+  app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(openApiDocument, {
+    swaggerOptions: {
+      requestInterceptor(request) {
+        request.credentials = "include";
+        return request;
+      },
+    },
+  }));
 }
 
 app.get("/api/v1/session", (req, res) => {
