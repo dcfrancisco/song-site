@@ -99,4 +99,4 @@ The architecture introduces schema-version management, preview authorization, sa
 
 ## Implementation boundary
 
-This ADR documents a proposed architecture. It does not implement authoring APIs, schemas, persistence, editors, permissions, or publication behavior.
+This ADR defines the architecture and does not claim that every listed page adapter or editor is complete. The Announcement first slice, shared lifecycle APIs, and persisted local RBAC are implemented locally; broader page expansion, production identity integration, and release qualification remain separate work-package deliverables.

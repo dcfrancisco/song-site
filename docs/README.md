@@ -38,9 +38,9 @@ This directory contains architecture decision records (ADRs), API contracts, and
 - [ADR-0032: Microsoft Entra SSO and API Token Integration](adr/0032-entra-api-token-integration.md) - Proposed for project-owner review
 - [ADR-0033: GitHub Actions Azure Deployment Automation](adr/0033-github-actions-azure-deployment-automation.md) - Proposed for project-owner review
 - [ADR-0034: API-Backed Announcement Page Content](adr/0034-api-backed-announcement-page-content.md) - Proposed for project-owner review
-- [ADR-0035: Development Authentication and Identity Isolation](adr/0035-development-authentication-and-identity-isolation.md) - Proposed for project-owner review
-- [ADR-0036: Page Authoring Architecture](adr/0036-page-authoring-architecture.md) - Proposed for project-owner review
-- [ADR-0037: Content Versioning and Publication Lifecycle](adr/0037-content-versioning-and-publication-lifecycle.md) - Proposed for project-owner review
+- [ADR-0035: Development Authentication and Identity Isolation](adr/0035-development-authentication-and-identity-isolation.md) - Accepted for implementation
+- [ADR-0036: Page Authoring Architecture](adr/0036-page-authoring-architecture.md) - Accepted for implementation
+- [ADR-0037: Content Versioning and Publication Lifecycle](adr/0037-content-versioning-and-publication-lifecycle.md) - Accepted for implementation
 
 ## Ownership
 

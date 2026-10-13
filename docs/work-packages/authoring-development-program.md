@@ -56,7 +56,7 @@ OpenAPI, middleware/provider implementation, local configuration example, UI ide
 
 ## WP-036: Backend Principal and Permission Enforcement
 
-**Status:** Implemented locally for current mutation routes; OpenAPI parity and route-protection regression evidence pass locally. Production qualification remains outstanding.
+**Status:** Implemented locally with normalized SQLite/PostgreSQL RBAC assignments and current mutation-route enforcement; OpenAPI parity and role-change regression evidence pass locally. Production Entra qualification remains outstanding.
 
 ### Scope and non-goals
 
@@ -84,7 +84,7 @@ Create one trusted principal/permission boundary and apply it to existing protec
 
 ### API and database changes
 
-Update OpenAPI security and stable error responses for every mutation. Add normalized identity/RBAC/audit migrations only after the relevant proposed ADRs are approved; do not treat the current `users.role` column as sufficient.
+Update OpenAPI security and stable error responses for every mutation. Add normalized identity/RBAC/audit migrations and administrator role-management APIs; do not treat the current `users.role` column as sufficient.
 
 ### Security requirements
 

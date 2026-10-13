@@ -207,4 +207,32 @@ async function listContentVersions(pageKey) { const doc=await contentDocument(pa
 async function listContentAuditEvents(pageKey) { const doc=await contentDocument(pageKey); const result=await getPostgresPool().query('SELECT action, actor_subject AS "actorSubject", source_version AS "sourceVersion", target_version AS "targetVersion" FROM content_audit_events WHERE document_id=$1 ORDER BY id DESC',[doc.id]); return result.rows; }
 async function restoreContentVersion(pageKey, versionId, principal, expectedVersion) { const doc=await contentDocument(pageKey); const result=await getPostgresPool().query('SELECT payload FROM content_versions WHERE id=$1 AND document_id=$2',[versionId,doc.id]); if(!result.rows[0])return null; return saveContentDraft(pageKey,result.rows[0].payload,principal,expectedVersion,'restored'); }
 
-module.exports = { createTask, getTasks, getProgress, updateTask, updateTaskStatus, getLeadership, updateLeadershipItem, getHomeSpotlight, updateHomeSpotlight, getAnnouncements, updateAnnouncement, getSongLinks, updateSongLink, getJourneyItems, updateJourneyItem, getPublishedContent, getDraftContent, previewContent, saveContentDraft, discardContentDraft, publishContent, listContentVersions, listContentAuditEvents, restoreContentVersion, close: closePostgresPool };
+async function getPrincipalBySubject(subject, provider = 'development') {
+  const result = await getPostgresPool().query(`SELECT u.id,u.email,u.display_name,u.is_active,u.provider,u.subject,r.role_key,p.permission_key FROM users u LEFT JOIN rbac_user_roles ur ON ur.user_id=u.id LEFT JOIN rbac_roles r ON r.id=ur.role_id LEFT JOIN rbac_role_permissions rp ON rp.role_id=r.id LEFT JOIN rbac_permissions p ON p.id=rp.permission_id WHERE u.provider=$1 AND u.subject=$2`, [provider, subject]);
+  if (!result.rows.length) return null;
+  return { provider: result.rows[0].provider, issuer: result.rows[0].provider === 'development' ? 'local.song-site' : 'entra', subject: result.rows[0].subject, userId: result.rows[0].id, displayName: result.rows[0].display_name, email: result.rows[0].email, roles: [...new Set(result.rows.map(row => row.role_key).filter(Boolean))], role: result.rows.find(row => row.role_key)?.role_key || null, permissions: [...new Set(result.rows.map(row => row.permission_key).filter(Boolean))], isActive: result.rows[0].is_active };
+}
+
+async function listRbacUsers() {
+  const result = await getPostgresPool().query(`SELECT u.id,u.email,u.display_name AS "displayName",u.provider,u.subject,u.is_active AS "isActive",COALESCE(array_agg(DISTINCT r.role_key) FILTER (WHERE r.role_key IS NOT NULL),'{}') AS roles FROM users u LEFT JOIN rbac_user_roles ur ON ur.user_id=u.id LEFT JOIN rbac_roles r ON r.id=ur.role_id GROUP BY u.id ORDER BY u.display_name`);
+  return result.rows;
+}
+
+async function assignRbacRoles(userId, roleKeys, actor) {
+  const roles = [...new Set(roleKeys)];
+  const client = await getPostgresPool().connect();
+  try {
+    await client.query('BEGIN');
+    const found = await client.query('SELECT role_key FROM rbac_roles WHERE role_key = ANY($1::text[])', [roles]);
+    if (found.rowCount !== roles.length) { await client.query('ROLLBACK'); return null; }
+    const user = await client.query('SELECT subject,provider FROM users WHERE id=$1', [userId]);
+    if (!user.rows[0]) { await client.query('ROLLBACK'); return undefined; }
+    await client.query('DELETE FROM rbac_user_roles WHERE user_id=$1', [userId]);
+    for (const role of roles) await client.query('INSERT INTO rbac_user_roles (user_id,role_id,assigned_by) SELECT $1,id,$2 FROM rbac_roles WHERE role_key=$3', [userId, actor.subject, role]);
+    await client.query('INSERT INTO authorization_audit_events (actor_subject,actor_provider,action,target_user_id,metadata) VALUES ($1,$2,$3,$4,$5)', [actor.subject, actor.provider, 'roles_replaced', userId, JSON.stringify({ roles })]);
+    await client.query('COMMIT');
+    return getPrincipalBySubject(user.rows[0].subject, user.rows[0].provider);
+  } catch (error) { await client.query('ROLLBACK'); throw error; } finally { client.release(); }
+}
+
+module.exports = { createTask, getTasks, getProgress, updateTask, updateTaskStatus, getLeadership, updateLeadershipItem, getHomeSpotlight, updateHomeSpotlight, getAnnouncements, updateAnnouncement, getSongLinks, updateSongLink, getJourneyItems, updateJourneyItem, getPublishedContent, getDraftContent, previewContent, saveContentDraft, discardContentDraft, publishContent, listContentVersions, listContentAuditEvents, restoreContentVersion, getPrincipalBySubject, listRbacUsers, assignRbacRoles, close: closePostgresPool };

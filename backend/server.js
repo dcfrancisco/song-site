@@ -14,7 +14,7 @@ const database = config.databaseDriver === "postgres"
   : require("./database");
 const app = express();
 const PORT = Number(process.env.PORT || 5001);
-const auth = createAuthService(config.auth);
+const auth = createAuthService(config.auth, database);
 const { ContentConflictError, ContentValidationError } = require('./content/errors');
 
 app.use(cors({
@@ -80,17 +80,32 @@ app.get("/api/v1/session", (req, res) => {
   res.json(auth.sessionSummary(req));
 });
 
-app.post("/api/v1/dev/session", requireObjectBody, (req, res) => {
+app.post("/api/v1/dev/session", requireObjectBody, async (req, res, next) => {
   if (!config.auth.isDevelopmentAuth || !auth.isLoopbackRequest(req)) {
     return res.status(404).json({ error: "Development authentication is unavailable" });
   }
-  const session = auth.createSession(req.body.fixture);
+  const session = await auth.createSession(req.body.fixture);
   if (!session) return res.status(400).json({ error: "Unknown development identity fixture" });
   res.set("Set-Cookie", serializeCookie(COOKIE_NAME, session.cookieValue, 1800));
   res.json({
     ...auth.sessionSummary({ principal: session.principal }),
     csrfToken: session.csrfToken,
   });
+});
+
+app.get('/api/v1/rbac/users', auth.requirePermission('rbac:users:read'), async (req, res, next) => {
+  try { res.json(await database.listRbacUsers()); } catch (error) { next(error); }
+});
+
+app.put('/api/v1/rbac/users/:userId/roles', ...requireMutation('rbac:users:manage'), requireObjectBody, async (req, res, next) => {
+  try {
+    if (!Array.isArray(req.body.roles) || req.body.roles.some(role => typeof role !== 'string' || role.length > 64)) return res.status(400).json({ error: 'roles must be an array of role names' });
+    if (req.params.userId === req.principal.userId) return res.status(403).json({ error: 'An administrator cannot change their own roles' });
+    const updated = await database.assignRbacRoles(req.params.userId, req.body.roles, req.principal);
+    if (updated === undefined) return res.status(404).json({ error: 'User not found' });
+    if (updated === null) return res.status(400).json({ error: 'One or more roles are invalid' });
+    res.json(updated);
+  } catch (error) { next(error); }
 });
 
 app.delete("/api/v1/dev/session", (req, res) => {

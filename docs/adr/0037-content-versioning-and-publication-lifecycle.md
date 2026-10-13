@@ -77,4 +77,4 @@ Publication history and audit retention can grow indefinitely unless product, pr
 
 ## Implementation boundary
 
-This ADR documents a proposed lifecycle. It does not add tables, migrations, endpoints, audit events, or editor behavior.
+This ADR defines the lifecycle contract and does not claim that every page schema or production qualification gate is complete. The shared content tables, Announcement lifecycle endpoints, audit events, and local SQLite/PostgreSQL adapter paths are implemented; broader page coverage and production migration qualification remain separate work-package deliverables.

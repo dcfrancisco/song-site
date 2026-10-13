@@ -7,17 +7,21 @@ const {
   verifyDevelopmentSession,
 } = require('./development');
 
-function createAuthService(authConfig) {
+function createAuthService(authConfig, identityStore) {
   const sessions = new Map();
 
-  function getSessionFromRequest(req) {
+  async function getSessionFromRequest(req) {
     if (!authConfig.isDevelopmentAuth) return null;
     const cookies = parseCookieHeader(req.get('cookie'));
-    return verifyDevelopmentSession(cookies[COOKIE_NAME], authConfig.sessionSecret, sessions);
+    const session = verifyDevelopmentSession(cookies[COOKIE_NAME], authConfig.sessionSecret, sessions);
+    if (!session || !identityStore?.getPrincipalBySubject) return session;
+    const principal = await identityStore.getPrincipalBySubject(session.principal.subject, 'development');
+    if (!principal) return null;
+    return { ...session, principal };
   }
 
-  function attachPrincipal(req, _res, next) {
-    const session = getSessionFromRequest(req);
+  async function attachPrincipal(req, _res, next) {
+    const session = await getSessionFromRequest(req);
     req.authSession = session;
     req.principal = session?.principal || null;
     next();
@@ -52,9 +56,13 @@ function createAuthService(authConfig) {
     };
   }
 
-  function createSession(fixtureName) {
+  async function createSession(fixtureName) {
     const session = createDevelopmentSession(fixtureName, authConfig.sessionSecret);
     if (!session) return null;
+    if (identityStore?.getPrincipalBySubject) {
+      session.principal = await identityStore.getPrincipalBySubject(session.principal.subject, 'development');
+      if (!session.principal) return null;
+    }
     sessions.set(session.sessionId, session);
     return session;
   }
@@ -74,6 +82,7 @@ function createAuthService(authConfig) {
             displayName: req.principal.displayName,
             email: req.principal.email,
             role: req.principal.role,
+            roles: [...(req.principal.roles || [])],
             permissions: [...req.principal.permissions],
           }
         : null,

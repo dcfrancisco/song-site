@@ -28,6 +28,33 @@ paths:
       operationId: endDevelopmentSession
       security: [{ developmentSession: [] }]
       responses: { '204': { description: Local session ended } }
+  /api/v1/rbac/users:
+    get:
+      operationId: listRbacUsers
+      summary: List users and assigned roles
+      security: [{ developmentSession: [] }]
+      responses:
+        '200':
+          description: Users visible to administrators
+          content: { application/json: { schema: { type: array, items: { $ref: '#/components/schemas/RbacUser' } } } }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+  /api/v1/rbac/users/{userId}/roles:
+    put:
+      operationId: replaceUserRoles
+      summary: Replace a user's roles
+      security: [{ developmentSession: [] }]
+      parameters:
+        - { name: userId, in: path, required: true, schema: { type: string, minLength: 1, maxLength: 128 } }
+      requestBody:
+        required: true
+        content: { application/json: { schema: { $ref: '#/components/schemas/RbacRoleAssignment' } } }
+      responses:
+        '200': { description: Updated effective principal, content: { application/json: { schema: { $ref: '#/components/schemas/RbacPrincipal' } } } }
+        '400': { $ref: '#/components/responses/Error' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '404': { $ref: '#/components/responses/NotFound' }
   /api/v1/content/pages/{pageKey}:
     get:
       operationId: getPublishedPageContent
@@ -556,6 +583,34 @@ components:
         authenticated: { type: boolean }
         identity: { type: object, nullable: true }
         developmentFixtures: { type: array, items: { type: object } }
+    RbacUser:
+      type: object
+      required: [id, email, displayName, provider, subject, isActive, roles]
+      properties:
+        id: { type: string }
+        email: { type: string, format: email }
+        displayName: { type: string }
+        provider: { type: string }
+        subject: { type: string }
+        isActive: { type: boolean }
+        roles: { type: array, items: { type: string } }
+    RbacRoleAssignment:
+      type: object
+      required: [roles]
+      properties:
+        roles:
+          type: array
+          maxItems: 16
+          items: { type: string, minLength: 1, maxLength: 64 }
+    RbacPrincipal:
+      type: object
+      required: [provider, subject, permissions, isActive]
+      properties:
+        provider: { type: string }
+        subject: { type: string }
+        roles: { type: array, items: { type: string } }
+        permissions: { type: array, items: { type: string } }
+        isActive: { type: boolean }
     AnnouncementPage:
       type: object
       additionalProperties: false

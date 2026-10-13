@@ -54,3 +54,18 @@ test('forged development cookies do not create an authenticated principal', asyn
   assert.equal(result.response.status, 200);
   assert.equal(result.json.authenticated, false);
 });
+
+test('administrator role assignment changes effective permissions', async () => {
+  let result = await request('POST', '/api/v1/dev/session', { fixture: 'administrator' });
+  assert.equal(result.response.status, 200);
+  const adminCookie = result.cookie.split(';')[0];
+  const adminCsrf = result.json.csrfToken;
+  result = await request('PUT', '/api/v1/rbac/users/dev-author/roles', { roles: [] }, adminCookie, adminCsrf);
+  assert.equal(result.response.status, 200);
+  result = await request('POST', '/api/v1/dev/session', { fixture: 'author' });
+  const authorCookie = result.cookie.split(';')[0];
+  result = await request('PUT', '/api/v1/authoring/pages/announcement-page/draft', { payload }, authorCookie, result.json.csrfToken);
+  assert.equal(result.response.status, 403);
+  result = await request('PUT', '/api/v1/rbac/users/dev-author/roles', { roles: ['author'] }, adminCookie, adminCsrf);
+  assert.equal(result.response.status, 200);
+});

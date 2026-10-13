@@ -9,6 +9,24 @@ const migrationsPath = path.join(__dirname, "migrations");
 fs.mkdirSync(path.dirname(databasePath), { recursive: true });
 
 const database = new DatabaseSync(databasePath);
+function ensureRbacTableShape(tableName, requiredColumns) {
+  const table = database.prepare("SELECT name FROM sqlite_master WHERE type = 'table' AND name = ?").get(tableName);
+  if (!table) return;
+  const columns = new Set(database.prepare(`PRAGMA table_info(${tableName})`).all().map(column => column.name));
+  if (requiredColumns.every(column => columns.has(column))) return;
+  let legacyName = `${tableName}_legacy`;
+  let suffix = 1;
+  while (database.prepare("SELECT name FROM sqlite_master WHERE type = 'table' AND name = ?").get(legacyName)) {
+    legacyName = `${tableName}_legacy_${suffix++}`;
+  }
+  database.exec(`ALTER TABLE ${tableName} RENAME TO ${legacyName}`);
+}
+
+ensureRbacTableShape('rbac_roles', ['role_key', 'display_name']);
+ensureRbacTableShape('rbac_permissions', ['permission_key', 'display_name']);
+ensureRbacTableShape('rbac_role_permissions', ['role_id', 'permission_id']);
+ensureRbacTableShape('rbac_user_roles', ['user_id', 'role_id']);
+
 for (const migrationFile of fs.readdirSync(migrationsPath).filter((file) => file.endsWith(".sql")).sort()) {
   database.exec(fs.readFileSync(path.join(migrationsPath, migrationFile), "utf8"));
 }
@@ -337,6 +355,43 @@ function updateJourneyItem(id, updates) {
   return item ? toJourneyItem(item) : null;
 }
 
+function getPrincipalBySubject(subject, provider = 'development') {
+  const rows = database.prepare(`SELECT u.id, u.email, u.display_name, 1 AS is_active, 'development' AS provider, u.id AS subject,
+    r.role_key, p.permission_key FROM users u
+    LEFT JOIN rbac_user_roles ur ON ur.user_id = u.id
+    LEFT JOIN rbac_roles r ON r.id = ur.role_id
+    LEFT JOIN rbac_role_permissions rp ON rp.role_id = r.id
+    LEFT JOIN rbac_permissions p ON p.id = rp.permission_id
+    WHERE ? = 'development' AND u.id = ?`).all(provider, subject);
+  if (!rows.length) return null;
+  return { provider: rows[0].provider, issuer: rows[0].provider === 'development' ? 'local.song-site' : 'entra', subject: rows[0].subject, userId: rows[0].id, displayName: rows[0].display_name, email: rows[0].email, roles: [...new Set(rows.map(row => row.role_key).filter(Boolean))], role: rows.find(row => row.role_key)?.role_key || null, permissions: [...new Set(rows.map(row => row.permission_key).filter(Boolean))], isActive: Boolean(rows[0].is_active) };
+}
+
+function listRbacUsers() {
+  return database.prepare(`SELECT u.id, u.email, u.display_name AS displayName, 'development' AS provider, u.id AS subject, 1 AS isActive,
+    COALESCE(GROUP_CONCAT(DISTINCT r.role_key), '') AS roles FROM users u
+    LEFT JOIN rbac_user_roles ur ON ur.user_id = u.id LEFT JOIN rbac_roles r ON r.id = ur.role_id
+    GROUP BY u.id ORDER BY u.display_name`).all().map(row => ({ ...row, isActive: Boolean(row.isActive), roles: row.roles ? row.roles.split(',') : [] }));
+}
+
+function assignRbacRoles(userId, roleKeys, actor) {
+  const roles = [...new Set(roleKeys)];
+  const placeholders = roles.map(() => '?').join(',');
+  const available = roles.length ? database.prepare(`SELECT role_key FROM rbac_roles WHERE role_key IN (${placeholders})`).all(...roles).map(row => row.role_key) : [];
+  if (available.length !== roles.length) return null;
+  const user = database.prepare("SELECT id AS subject, 'development' AS provider FROM users WHERE id = ?").get(userId);
+  if (!user) return undefined;
+  database.exec('BEGIN');
+  try {
+    database.prepare('DELETE FROM rbac_user_roles WHERE user_id = ?').run(userId);
+    const insert = database.prepare('INSERT INTO rbac_user_roles (user_id, role_id, assigned_by) SELECT ?, id, ? FROM rbac_roles WHERE role_key = ?');
+    for (const roleKey of roles) insert.run(userId, actor.subject, roleKey);
+    database.prepare('INSERT INTO authorization_audit_events (actor_subject, actor_provider, action, target_user_id, metadata) VALUES (?, ?, ?, ?, ?)').run(actor.subject, actor.provider, 'roles_replaced', userId, JSON.stringify({ roles }));
+    database.exec('COMMIT');
+  } catch (error) { database.exec('ROLLBACK'); throw error; }
+  return getPrincipalBySubject(user.subject, user.provider);
+}
+
 module.exports = {
   createTask,
   getTasks,
@@ -353,6 +408,9 @@ module.exports = {
   updateSongLink,
   getJourneyItems,
   updateJourneyItem,
+  getPrincipalBySubject,
+  listRbacUsers,
+  assignRbacRoles,
   getPublishedContent,
   getDraftContent,
   previewContent,
