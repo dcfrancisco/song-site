@@ -13,6 +13,7 @@ const FIXTURES = Object.freeze({
       'content:announcement-page:edit',
       'content:history:read',
       'journey:read',
+      'journey:manage',
     ]),
   }),
   author: Object.freeze({
@@ -24,6 +25,7 @@ const FIXTURES = Object.freeze({
       'content:announcement-page:edit',
       'content:history:read',
       'leadership:edit',
+      'journey:manage',
     ]),
   }),
   publisher: Object.freeze({
@@ -38,6 +40,7 @@ const FIXTURES = Object.freeze({
       'content:restore',
       'leadership:edit',
       'leadership:publish',
+      'journey:manage',
     ]),
   }),
   administrator: Object.freeze({
