@@ -24,16 +24,16 @@
           </span>
           <div class="meta-group">
             <div class="meta" *ngIf="item.startDate">
-              Start: {{ item.startDate | date:'medium' }}
+              Start: {{ item.startDate | date:'MMM d, y' }}
             </div>
             <div class="meta" *ngIf="item.endDate">
-              End: {{ item.endDate | date:'medium' }}
+              End: {{ item.endDate | date:'MMM d, y' }}
             </div>
             <div class="meta" *ngIf="item.startDate && item.endDate">
               Duration: {{ getDuration(item.startDate, item.endDate) }}
             </div>
             <div class="meta" *ngIf="item.lastUpdated">
-              Updated: {{ item.lastUpdated | date:'medium' }}
+              Updated: {{ item.lastUpdated | date:'MMM d, y' }}
             </div>
           </div>
         </div>
