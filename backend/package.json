@@ -8,6 +8,7 @@
     "db:migrate": "node scripts/database.js migrate",
     "db:seed": "node scripts/database.js seed",
     "db:check": "node scripts/database.js check",
+    "db:postgres:migrate": "node scripts/postgres-migrate.js",
     "db:postgres:check": "node scripts/postgres-check.js",
     "db:reset": "node scripts/database.js reset",
     "start": "node server.js",

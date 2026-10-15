@@ -17,6 +17,7 @@ concurrency:
 jobs:
   publish:
     runs-on: ubuntu-latest
+    environment: production
 
     steps:
       - name: Checkout
@@ -55,12 +56,13 @@ jobs:
         env:
           AZURE_ACR_NAME: ${{ vars.AZURE_ACR_NAME }}
           AZURE_ACR_LOGIN_SERVER: ${{ vars.AZURE_ACR_LOGIN_SERVER }}
+          AZURE_POSTGRES_DATABASE_URL: ${{ secrets.AZURE_POSTGRES_DATABASE_URL }}
           VITE_AZURE_REDIRECT_URI: ${{ secrets.VITE_AZURE_REDIRECT_URI }}
           VITE_ENTRA_CLIENT_ID: ${{ secrets.VITE_ENTRA_CLIENT_ID }}
           VITE_ENTRA_TENANT_ID: ${{ secrets.VITE_ENTRA_TENANT_ID }}
         run: |
           set -euo pipefail
-          for name in AZURE_ACR_NAME AZURE_ACR_LOGIN_SERVER VITE_AZURE_REDIRECT_URI VITE_ENTRA_CLIENT_ID VITE_ENTRA_TENANT_ID; do
+          for name in AZURE_ACR_NAME AZURE_ACR_LOGIN_SERVER AZURE_POSTGRES_DATABASE_URL VITE_AZURE_REDIRECT_URI VITE_ENTRA_CLIENT_ID VITE_ENTRA_TENANT_ID; do
             if [ -z "${!name}" ]; then
               echo "Missing required GitHub configuration: ${name}" >&2
               exit 1
@@ -106,3 +108,10 @@ jobs:
 
           echo "Published $WEB_IMAGE"
           echo "Published $API_IMAGE"
+
+      - name: Apply PostgreSQL migrations
+        working-directory: backend
+        env:
+          DATABASE_URL: ${{ secrets.AZURE_POSTGRES_DATABASE_URL }}
+          PGSSL: "true"
+        run: npm run db:postgres:migrate

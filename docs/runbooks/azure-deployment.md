@@ -112,7 +112,7 @@ Names should be finalized with the deployment implementation, but the pipeline w
 - frontend and backend image repository names;
 - staging or production API URL;
 - frontend Entra redirect URI, client ID, and tenant ID;
-- database connection secret or reference to an Azure-managed secret;
+- `AZURE_POSTGRES_DATABASE_URL` as a protected GitHub environment secret, or a future Azure-managed secret reference;
 - migration and smoke-test configuration.
 
 Never commit values for `DATABASE_URL`, database passwords, client secrets, signing keys, or API keys.
@@ -156,7 +156,7 @@ Do not expire or delete the following through ordinary cleanup:
 1. Run verification and build the commit-tagged frontend and backend images.
 2. Push immutable images to Azure Container Registry.
 3. Confirm PostgreSQL backup and migration prerequisites.
-4. Run the authenticated migration step against the target database.
+4. Run the authenticated `backend` PostgreSQL migration step against the target database. The runner records applied versions in `schema_migrations` and blocks the workflow on failure.
 5. Deploy the backend revision and wait for its health check.
 6. Deploy the frontend revision with the matching API URL.
 7. Run API smoke tests and focused browser checks.
@@ -176,4 +176,4 @@ Migration failures must block promotion. Do not make destructive schema changes 
 
 ## Current status
 
-This runbook is planning documentation only. Azure resources, GitHub OIDC configuration, deployment workflows, PostgreSQL production provisioning, and Entra API-token validation are not yet implemented. PostgreSQL is not installed in the current local environment.
+The image-publishing workflow now includes a protected PostgreSQL migration step in the `production` GitHub environment. Azure resources, Container Apps deployment/promotion, PostgreSQL production provisioning, and Entra API-token validation remain unimplemented. Configure `AZURE_POSTGRES_DATABASE_URL` as a protected `production` environment secret before enabling the workflow on `main`.
