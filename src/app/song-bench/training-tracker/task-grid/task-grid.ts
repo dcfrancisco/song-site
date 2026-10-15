@@ -20,8 +20,7 @@ export class TaskGrid {
   errorMessage = '';
   busyTaskId: number | null = null;
 
-  // ID of the "Complete all Training trackers" card in my-journey tasks
-  private readonly mainTrainingTaskId = 12;
+  private readonly mainTrainingTaskTitle = 'Complete all Training trackers';
 
   constructor(
     private taskService: TrainingTaskService,
@@ -84,9 +83,9 @@ export class TaskGrid {
       next: () => {
         this.mainTaskService.getTasks().subscribe({
           next: mainTasks => {
-        const mainTask = mainTasks.find(t => t.id === this.mainTrainingTaskId);
+        const mainTask = mainTasks.find(t => t.title === this.mainTrainingTaskTitle);
         if (mainTask?.status === 'Completed') {
-          this.mainTaskService.updateTaskStatus(this.mainTrainingTaskId, 'start').subscribe({
+          this.mainTaskService.updateTaskStatus(mainTask.id, 'start').subscribe({
             next: () => this.finishMutation(),
             error: () => this.failMutation('The parent training task could not be reopened. Please try again.')
           });
@@ -112,12 +111,12 @@ export class TaskGrid {
 
         this.mainTaskService.getTasks().subscribe({
           next: mainTasks => {
-            const mainTask = mainTasks.find(task => task.id === this.mainTrainingTaskId);
+            const mainTask = mainTasks.find(task => task.title === this.mainTrainingTaskTitle);
             if (!mainTask || mainTask.status === 'Completed') {
               this.finishMutation();
               return;
             }
-            this.mainTaskService.updateTaskStatus(this.mainTrainingTaskId, 'complete').subscribe({
+            this.mainTaskService.updateTaskStatus(mainTask.id, 'complete').subscribe({
               next: () => this.finishMutation(),
               error: () => this.failMutation('The parent training task could not be completed. Please try again.')
             });
