@@ -69,3 +69,29 @@ test('administrator role assignment changes effective permissions', async () => 
   result = await request('PUT', '/api/v1/rbac/users/dev-author/roles', { roles: ['author'] }, adminCookie, adminCsrf);
   assert.equal(result.response.status, 200);
 });
+
+test('non-admin Journey users can start and complete tasks with CSRF protection', async () => {
+  let result = await request('GET', '/api/tasks');
+  assert.equal(result.response.status, 200);
+  const task = result.json.find(candidate => candidate.status === 'Not Started');
+  assert.ok(task);
+
+  result = await request('POST', '/api/v1/dev/session', { fixture: 'developer' });
+  assert.equal(result.response.status, 200);
+  const developerCookie = result.cookie.split(';')[0];
+  const developerCsrf = result.json.csrfToken;
+
+  result = await request('PUT', `/api/tasks/${task.id}/status`, { action: 'start' }, developerCookie);
+  assert.equal(result.response.status, 403);
+
+  result = await request('PUT', `/api/tasks/${task.id}/status`, { action: 'start' }, developerCookie, developerCsrf);
+  assert.equal(result.response.status, 200);
+  assert.equal(result.json.status, 'In Progress');
+
+  result = await request('POST', '/api/v1/dev/session', { fixture: 'author' });
+  assert.equal(result.response.status, 200);
+  const authorCookie = result.cookie.split(';')[0];
+  result = await request('PUT', `/api/tasks/${task.id}/status`, { action: 'complete' }, authorCookie, result.json.csrfToken);
+  assert.equal(result.response.status, 200);
+  assert.equal(result.json.status, 'Completed');
+});

@@ -3,12 +3,13 @@ import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { TrainingTask } from './models/training-task';
 import { API_BASE_URL } from '../../api.config';
+import { SessionService } from '../../auth/session.service';
 
 @Injectable({ providedIn: 'root' })
 export class TrainingTaskService {
   private apiUrl = API_BASE_URL;
 
-  constructor(private http: HttpClient) {}
+  constructor(private http: HttpClient, private session: SessionService) {}
 
   getTasks(): Observable<TrainingTask[]> {
     return this.http.get<TrainingTask[]>(`${API_BASE_URL}/training-tasks`);
@@ -19,6 +20,9 @@ export class TrainingTaskService {
   }
 
   updateTaskStatus(id: number, action: 'start' | 'complete'): Observable<TrainingTask> {
-    return this.http.put<TrainingTask>(`${API_BASE_URL}/training-tasks/${id}/status`, { action });
+    return this.http.put<TrainingTask>(`${API_BASE_URL}/training-tasks/${id}/status`, { action }, {
+      withCredentials: true,
+      headers: { 'X-CSRF-Token': this.session.csrf },
+    });
   }
 }
