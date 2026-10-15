@@ -32,6 +32,7 @@ services:
       DATABASE_URL: postgresql://${POSTGRES_USER:-song_site}:${POSTGRES_PASSWORD:-song_site_local}@postgres:5432/${POSTGRES_DB:-song_site}
       # Compose PostgreSQL is an internal local network; Azure TLS settings from .env must not leak here.
       PGSSL: ${COMPOSE_PGSSL:-false}
+    command: sh -c "node scripts/postgres-migrate.js && node server.js"
     depends_on:
       postgres:
         condition: service_healthy
@@ -42,9 +43,9 @@ services:
     healthcheck:
       test: ["CMD", "node", "-e", "fetch('http://127.0.0.1:' + (process.env.PORT || 5001) + '/health/ready').then(r => process.exit(r.ok ? 0 : 1)).catch(() => process.exit(1))"]
       interval: 5s
-      timeout: 5s
+      timeout: 15s
       retries: 12
-      start_period: 5s
+      start_period: 30s
 
   frontend:
     build:

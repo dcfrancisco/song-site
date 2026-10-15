@@ -53,8 +53,8 @@
     <hr class="card-divider">
 
     <div class="dates">
-      <span><strong>Start:</strong> {{task.startDate || '—'}}</span>
-      <span><strong>End:</strong> {{task.endDate || '—'}}</span>
+      <span><strong>Start:</strong> {{ task.startDate ? (task.startDate | date:'MMM d, y') : '—' }}</span>
+      <span><strong>End:</strong> {{ task.endDate ? (task.endDate | date:'MMM d, y') : '—' }}</span>
     </div>
 
     <p class="status">

@@ -3,8 +3,20 @@ const path = require('node:path');
 const { Pool } = require('pg');
 
 const repositoryRoot = path.join(__dirname, '..', '..');
-const baselinePath = path.join(repositoryRoot, 'docker', 'postgres', 'init', '001-schema.sql');
-const migrationsPath = path.join(repositoryRoot, 'backend', 'migrations-postgres');
+const baselineCandidates = [
+  path.join(repositoryRoot, 'docker', 'postgres', 'init', '001-schema.sql'),
+  path.join(__dirname, '..', 'postgres-init', '001-schema.sql'),
+];
+const migrationCandidates = [
+  path.join(repositoryRoot, 'backend', 'migrations-postgres'),
+  path.join(__dirname, '..', 'migrations-postgres'),
+];
+
+function firstExisting(candidates, kind) {
+  const match = candidates.find(candidate => fs.existsSync(candidate));
+  if (!match) throw new Error(`PostgreSQL ${kind} not found in expected locations`);
+  return match;
+}
 
 function sslOptions() {
   return process.env.PGSSL === 'true' ? { rejectUnauthorized: false } : undefined;
@@ -51,6 +63,8 @@ async function migrate() {
       )
     `);
 
+    const baselinePath = firstExisting(baselineCandidates, 'baseline schema');
+    const migrationsPath = firstExisting(migrationCandidates, 'migrations directory');
     await applyMigration(client, '000-initial-schema', fs.readFileSync(baselinePath, 'utf8'));
 
     const migrationFiles = fs.readdirSync(migrationsPath)
