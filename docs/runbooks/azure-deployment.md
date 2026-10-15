@@ -112,7 +112,8 @@ Names should be finalized with the deployment implementation, but the pipeline w
 - frontend and backend image repository names;
 - staging or production API URL;
 - frontend Entra redirect URI, client ID, and tenant ID;
-- `DATABASE_URL` as a protected GitHub environment secret, or a future Azure-managed secret reference;
+- `PGHOST`, `PGPORT`, `PGDATABASE`, and `PGSSL` as protected GitHub environment variables;
+- `PGUSER` and `PGPASSWORD` as protected GitHub environment secrets, or future Azure-managed secret references;
 - migration and smoke-test configuration.
 
 Never commit values for `DATABASE_URL`, database passwords, client secrets, signing keys, or API keys.
@@ -176,4 +177,4 @@ Migration failures must block promotion. Do not make destructive schema changes 
 
 ## Current status
 
-The image-publishing workflow now includes a protected PostgreSQL migration step in the `production` GitHub environment. Azure resources, Container Apps deployment/promotion, PostgreSQL production provisioning, and Entra API-token validation remain unimplemented. Configure `DATABASE_URL` as a protected `production` environment secret before enabling the workflow on `main`.
+The image-publishing workflow now includes a protected PostgreSQL migration step in the `production` GitHub environment. Azure resources, Container Apps deployment/promotion, PostgreSQL production provisioning, and Entra API-token validation remain unimplemented. Configure the `PG*` variables and secrets as protected `production` environment values before enabling the workflow on `main`.

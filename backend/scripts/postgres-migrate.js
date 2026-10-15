@@ -28,9 +28,20 @@ async function applyMigration(client, version, sql) {
 }
 
 async function migrate() {
-  if (!process.env.DATABASE_URL) throw new Error('DATABASE_URL is required for PostgreSQL migrations');
+  const connection = process.env.DATABASE_URL
+    ? { connectionString: process.env.DATABASE_URL }
+    : {
+        host: process.env.PGHOST,
+        port: Number(process.env.PGPORT || 5432),
+        database: process.env.PGDATABASE,
+        user: process.env.PGUSER,
+        password: process.env.PGPASSWORD,
+      };
+  if (!connection.connectionString && (!connection.host || !connection.database || !connection.user || !connection.password)) {
+    throw new Error('Set DATABASE_URL or PGHOST, PGDATABASE, PGUSER, and PGPASSWORD for PostgreSQL migrations');
+  }
 
-  const pool = new Pool({ connectionString: process.env.DATABASE_URL, ssl: sslOptions() });
+  const pool = new Pool({ ...connection, ssl: sslOptions() });
   const client = await pool.connect();
   try {
     await client.query(`
