@@ -7,7 +7,7 @@ import { Task } from "./models/task";
 import { TaskService } from "./task.service";
 import { Navbar } from "../../navbar/navbar";
 
-const TRAINING_TRACKER_TASK_ID = 12;
+const TRAINING_TRACKER_TASK_TITLE = 'Complete all Training trackers';
 
 @Component({
  standalone: true,
@@ -40,10 +40,10 @@ export class MyJourneyComponent implements OnInit {
 
       // If any training task is In Progress, ensure the main card is also In Progress
       const anyInProgress = trainingTasks.some(t => t.status === 'In Progress');
-      const mainTask = tasks.find(t => t.id === TRAINING_TRACKER_TASK_ID);
+      const mainTask = tasks.find(t => t.title === TRAINING_TRACKER_TASK_TITLE);
 
       if (anyInProgress && mainTask && mainTask.status !== 'In Progress') {
-        this.taskService.updateTaskStatus(TRAINING_TRACKER_TASK_ID, 'start').subscribe(() => {
+        this.taskService.updateTaskStatus(mainTask.id, 'start').subscribe(() => {
           this.taskService.getTasks().subscribe(updated => {
             this.tasks = updated;
             this.openCongratsIfComplete(showCongrats);
