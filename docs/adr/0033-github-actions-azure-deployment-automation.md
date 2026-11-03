@@ -55,7 +55,7 @@ This ADR is documentation only. No GitHub Actions workflow, Azure federated cred
 
 The shared preview uses one repository-level deployment configuration and one Azure target. The workflow builds the Angular frontend and Express API from the same commit and deploys them as separate runtime services; it does not maintain a second frontend implementation or a separate `DEV_*` configuration layer. This preview decision does not authorize production deployment or settle production hosting and promotion controls.
 
-The workflow resolves the established shared-preview app names (`ca-song-site-web-dev` and `ca-song-site-api-dev`) after OIDC login. It must verify exactly one match per name and that both apps share a resource group before running migrations or deploying. It must fail explicitly if Azure read permissions or target discovery is unavailable; it must not create replacement apps or guess a resource group.
+The workflow resolves the existing shared-preview frontend by its approved hostname and its API by the established name across subscriptions visible to the Azure OIDC identity. It must verify exactly one matching pair and that both apps share a resource group before running migrations or deploying. It must fail explicitly if Azure read permissions or target discovery is unavailable; it must not create replacement apps or guess a resource group.
 
 ## Completion criteria
 

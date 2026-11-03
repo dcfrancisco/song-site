@@ -86,35 +86,46 @@ jobs:
       - name: Resolve existing shared preview Container Apps
         id: container-app-targets
         env:
-          AZURE_SUBSCRIPTION_ID: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
           WEB_APP_NAME: ca-song-site-web-dev
+          WEB_APP_FQDN: ca-song-site-web-dev.proudtree-05898de0.southeastasia.azurecontainerapps.io
           API_APP_NAME: ca-song-site-api-dev
         run: |
           set -euo pipefail
 
-          if ! apps_json="$(az containerapp list \
-            --subscription "$AZURE_SUBSCRIPTION_ID" \
-            --query "[?name=='${WEB_APP_NAME}' || name=='${API_APP_NAME}'].{name:name,resourceGroup:resourceGroup}" \
-            --output json)"; then
-            echo "Could not list Container Apps. The Azure OIDC identity needs permission to read the existing preview apps." >&2
+          subscriptions_json="$(az account list --all --output json)"
+          mapfile -t subscriptions < <(jq -r '.[].id' <<< "$subscriptions_json")
+          if [[ ${#subscriptions[@]} -eq 0 ]]; then
+            echo "The Azure OIDC identity has no visible subscriptions." >&2
             exit 1
           fi
 
-          web_count="$(jq --arg name "$WEB_APP_NAME" '[.[] | select(.name == $name)] | length' <<< "$apps_json")"
-          api_count="$(jq --arg name "$API_APP_NAME" '[.[] | select(.name == $name)] | length' <<< "$apps_json")"
-          if [[ "$web_count" != "1" || "$api_count" != "1" ]]; then
-            echo "Expected exactly one existing preview Container App named ${WEB_APP_NAME} and ${API_APP_NAME}; found ${web_count} and ${api_count}." >&2
+          candidates=()
+          for subscription_id in "${subscriptions[@]}"; do
+            apps_json="$(az containerapp list --subscription "$subscription_id" --output json)"
+            web_matches="$(jq -c --arg name "$WEB_APP_NAME" --arg fqdn "$WEB_APP_FQDN" '[.[] | select(.name == $name and .properties.configuration.ingress.fqdn == $fqdn) | {name: .name, resourceGroup: .resourceGroup}]' <<< "$apps_json")"
+            api_matches="$(jq -c --arg name "$API_APP_NAME" '[.[] | select(.name == $name) | {name: .name, resourceGroup: .resourceGroup}]' <<< "$apps_json")"
+            web_count="$(jq 'length' <<< "$web_matches")"
+            api_count="$(jq 'length' <<< "$api_matches")"
+
+            if [[ "$web_count" == "1" && "$api_count" == "1" ]]; then
+              web_resource_group="$(jq -r '.[0].resourceGroup' <<< "$web_matches")"
+              api_resource_group="$(jq -r '.[0].resourceGroup' <<< "$api_matches")"
+              if [[ "$web_resource_group" == "$api_resource_group" ]]; then
+                candidates+=("${subscription_id}|${web_resource_group}")
+              fi
+            fi
+          done
+
+          if [[ ${#candidates[@]} -ne 1 ]]; then
+            echo "Expected one existing preview app pair matching ${WEB_APP_FQDN}; found ${#candidates[@]}." >&2
+            echo "Check the Azure OIDC identity's subscription access and the existing Container App names." >&2
             exit 1
           fi
 
-          web_resource_group="$(jq -r --arg name "$WEB_APP_NAME" '.[] | select(.name == $name) | .resourceGroup' <<< "$apps_json")"
-          api_resource_group="$(jq -r --arg name "$API_APP_NAME" '.[] | select(.name == $name) | .resourceGroup' <<< "$apps_json")"
-          if [[ "$web_resource_group" != "$api_resource_group" ]]; then
-            echo "The existing preview frontend and API are not in the same resource group." >&2
-            exit 1
-          fi
-
-          echo "resource-group=$web_resource_group" >> "$GITHUB_OUTPUT"
+          IFS='|' read -r target_subscription target_resource_group <<< "${candidates[0]}"
+          echo "::add-mask::${target_subscription}"
+          echo "subscription-id=$target_subscription" >> "$GITHUB_OUTPUT"
+          echo "resource-group=$target_resource_group" >> "$GITHUB_OUTPUT"
           echo "web-app=$WEB_APP_NAME" >> "$GITHUB_OUTPUT"
           echo "api-app=$API_APP_NAME" >> "$GITHUB_OUTPUT"
 
@@ -164,11 +175,12 @@ jobs:
 
       - name: Deploy images to Container Apps
         env:
+          TARGET_SUBSCRIPTION: ${{ steps.container-app-targets.outputs.subscription-id }}
           RESOURCE_GROUP: ${{ steps.container-app-targets.outputs.resource-group }}
           WEB_APP: ${{ steps.container-app-targets.outputs.web-app }}
           API_APP: ${{ steps.container-app-targets.outputs.api-app }}
           ACR_LOGIN_SERVER: ${{ vars.AZURE_ACR_LOGIN_SERVER }}
         run: |
           set -euo pipefail
-          az containerapp update -g "$RESOURCE_GROUP" -n "$API_APP" --image "${ACR_LOGIN_SERVER}/song-site-api:${GITHUB_SHA}"
-          az containerapp update -g "$RESOURCE_GROUP" -n "$WEB_APP" --image "${ACR_LOGIN_SERVER}/song-site-web:${GITHUB_SHA}"
+          az containerapp update --subscription "$TARGET_SUBSCRIPTION" -g "$RESOURCE_GROUP" -n "$API_APP" --image "${ACR_LOGIN_SERVER}/song-site-api:${GITHUB_SHA}"
+          az containerapp update --subscription "$TARGET_SUBSCRIPTION" -g "$RESOURCE_GROUP" -n "$WEB_APP" --image "${ACR_LOGIN_SERVER}/song-site-web:${GITHUB_SHA}"

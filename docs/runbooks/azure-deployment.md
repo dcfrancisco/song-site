@@ -108,7 +108,7 @@ The `publish-azure-images.yml` workflow deploys to the single shared preview tar
 - Variables: `AZURE_ACR_NAME`, `AZURE_ACR_LOGIN_SERVER`, `PGHOST`, `PGPORT`, `PGDATABASE`, and `PGSSL`.
 - Secrets: `AZURE_CLIENT_ID`, `AZURE_TENANT_ID`, `AZURE_SUBSCRIPTION_ID`, `PGUSER`, `PGPASSWORD`, `VITE_AZURE_REDIRECT_URI`, `VITE_ENTRA_CLIENT_ID`, and `VITE_ENTRA_TENANT_ID`.
 
-The workflow discovers the existing preview Container Apps by their names (`ca-song-site-web-dev` and `ca-song-site-api-dev`) after Azure OIDC login. It requires exactly one match for each app, verifies that they share a resource group, and fails before migrations if discovery or Azure read access fails. Do not change these names to production resources. The API Container App must use the preview database.
+After Azure OIDC login, the workflow searches subscriptions visible to that identity and resolves the existing frontend by its approved preview hostname. It also resolves the API by its established name, requires both apps to share one resource group, and fails before migrations unless exactly one matching pair is found. Do not change these targets to production resources. The API Container App must use the preview database.
 
 Never commit values for `DATABASE_URL`, database passwords, client secrets, signing keys, or API keys.
 
