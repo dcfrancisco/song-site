@@ -1,6 +1,6 @@
 # Azure Deployment Setup
 
-This runbook covers the GitHub Actions development preview deployment and the additional preparation required for a production release.
+This runbook covers the shared Azure development preview and the additional preparation required for a production release. The preview deploys the repository's Angular frontend and Express API from the same commit; it is one application with separate frontend and API services, not a second frontend implementation.
 
 The target architecture is defined by [ADR-0031](../adr/0031-azure-github-deployment-pipeline.md). The related implementation work is tracked under `WP-032` and `WP-033`.
 
@@ -101,15 +101,14 @@ permissions:
 
 Do not use a long-lived Azure service-principal secret when OIDC federation is available.
 
-## Required GitHub environment values
+## Required GitHub repository configuration
 
-The `publish-azure-images.yml` workflow targets the GitHub `development` environment. Configure development-only values there using these names:
+The `publish-azure-images.yml` workflow deploys to the single shared preview target using repository-level configuration. Do not create a separate `development` GitHub environment or duplicate the existing settings with `DEV_*` names.
 
-- Variables: `DEV_AZURE_RESOURCE_GROUP`, `DEV_AZURE_WEB_APP`, `DEV_AZURE_API_APP`, `DEV_PGHOST`, `DEV_PGPORT`, `DEV_PGDATABASE`, and `DEV_PGSSL`.
-- Secrets: `DEV_AZURE_CLIENT_ID`, `DEV_AZURE_TENANT_ID`, `DEV_AZURE_SUBSCRIPTION_ID`, `DEV_PGUSER`, `DEV_PGPASSWORD`, `DEV_VITE_AZURE_REDIRECT_URI`, `DEV_VITE_ENTRA_CLIENT_ID`, and `DEV_VITE_ENTRA_TENANT_ID`.
-- Repository variables shared by the preview: `AZURE_ACR_NAME` and `AZURE_ACR_LOGIN_SERVER`.
+- Variables: `AZURE_RESOURCE_GROUP`, `AZURE_WEB_APP`, `AZURE_API_APP`, `AZURE_ACR_NAME`, `AZURE_ACR_LOGIN_SERVER`, `PGHOST`, `PGPORT`, `PGDATABASE`, and `PGSSL`.
+- Secrets: `AZURE_CLIENT_ID`, `AZURE_TENANT_ID`, `AZURE_SUBSCRIPTION_ID`, `PGUSER`, `PGPASSWORD`, `VITE_AZURE_REDIRECT_URI`, `VITE_ENTRA_CLIENT_ID`, and `VITE_ENTRA_TENANT_ID`.
 
-The workflow fails before Azure login, migration, or deployment if any required value is missing. Do not copy production database credentials or production resource identifiers into the `development` environment. The deployed development API Container App must also be configured to use the development database.
+The workflow fails before Azure login, migration, or deployment if any required value is missing. The configured resource group and Container Apps must be the shared development-preview resources; do not point this workflow at production. The API Container App must use the preview database.
 
 Never commit values for `DATABASE_URL`, database passwords, client secrets, signing keys, or API keys.
 
@@ -172,7 +171,7 @@ Migration failures must block promotion. Do not make destructive schema changes 
 
 ## Current status
 
-The image-publishing workflow deploys commit-tagged images to the `development` GitHub environment after applying development PostgreSQL migrations. The development environment configuration is not present yet, so the workflow will fail its required-configuration check until the `DEV_*` values above are added. Production promotion, production migration approval, post-deployment smoke tests, rollback evidence, and Entra API-token validation remain separate work and are not implemented by this preview deployment.
+The image-publishing workflow builds commit-tagged frontend and API images from the same repository commit, applies preview PostgreSQL migrations, and deploys both images to the shared Azure preview. The repository currently lacks the target identifiers `AZURE_RESOURCE_GROUP`, `AZURE_WEB_APP`, and `AZURE_API_APP`, so deployment cannot complete until those existing resource names are configured. Production promotion, production migration approval, post-deployment smoke tests, rollback evidence, and Entra API-token validation remain separate work.
 
 ## Email/password sign-in without SSO (`AUTH_MODE=local`)
 
