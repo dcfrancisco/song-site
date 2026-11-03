@@ -18,8 +18,11 @@ describe('IndexComponent', () => {
     login: ReturnType<typeof vi.fn>;
   };
   const sessionState = signal<SessionInfo>({ mode: 'guest', authenticated: false, identity: null });
+  const sessionLogin = vi.fn();
 
   beforeEach(async () => {
+    sessionLogin.mockReset();
+    sessionLogin.mockResolvedValue(undefined);
     sessionState.set({ mode: 'guest', authenticated: false, identity: null });
     authService = {
       isAuthenticated: vi.fn(() => false),
@@ -37,7 +40,7 @@ describe('IndexComponent', () => {
         { provide: AuthService, useValue: authService },
         {
           provide: SessionService,
-          useValue: { session: sessionState.asReadonly(), refresh: () => Promise.resolve() },
+          useValue: { session: sessionState.asReadonly(), refresh: () => Promise.resolve(), login: sessionLogin },
         },
       ],
     }).compileComponents();
@@ -47,14 +50,29 @@ describe('IndexComponent', () => {
     await fixture.whenStable();
   });
 
-  it('offers SSO and clearly marks email sign-in unavailable without exposing role selectors', () => {
+  it('offers SSO and an email/password form without exposing role selectors', () => {
     const text = fixture.nativeElement.textContent as string;
     expect(text).toContain('Sign in with Microsoft SSO');
     expect(text).toContain('Sign in with email');
-    expect(text).toContain('Email one-time-code sign-in is unavailable');
     expect(text).not.toContain('Local Administrator');
     expect(text).not.toContain('Local Author');
-    expect(fixture.nativeElement.querySelector('.email-sign-in .secondary-action').disabled).toBe(true);
+    expect(fixture.nativeElement.querySelector('#email-address')).not.toBeNull();
+    expect(fixture.nativeElement.querySelector('#password').type).toBe('password');
+    expect(fixture.nativeElement.querySelector('.email-sign-in .secondary-action').disabled).toBe(false);
+  });
+
+  it('signs in with email and password and shows a generic error on failure', async () => {
+    const component = fixture.componentInstance;
+    const router = TestBed.inject(Router);
+    const navigate = vi.spyOn(router, 'navigateByUrl').mockResolvedValue(true);
+
+    await component.signInWithPassword(' user@example.com ', 'secret');
+    expect(sessionLogin).toHaveBeenCalledWith('user@example.com', 'secret');
+    expect(navigate).toHaveBeenCalledWith('/home');
+
+    sessionLogin.mockRejectedValueOnce({ status: 401 });
+    await component.signInWithPassword('user@example.com', 'wrong');
+    expect(component.emailError()).toBe('Invalid email or password.');
   });
 
   it('starts the Microsoft SSO flow from its sign-in button', () => {
