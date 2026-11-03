@@ -13,16 +13,14 @@ import { SessionService } from '../auth/session.service';
   styleUrl: './index.component.css',
 })
 export class IndexComponent implements OnInit {
-  readonly isAuthenticated = computed(() => this.authService.isAuthenticated());
-  readonly displayName = computed(() => this.authService.displayName());
-  readonly isBusy = computed(() => this.authService.isBusy());
   private readonly sessionError = signal<string | null>(null);
+  private readonly authService = inject(AuthService);
   readonly error = computed(() => this.sessionError() ?? this.authService.error());
+  readonly isBusy = this.authService.isBusy;
   private readonly sessionService = inject(SessionService);
   readonly session = this.sessionService.session;
 
   constructor(
-    private readonly authService: AuthService,
     private readonly route: ActivatedRoute,
     private readonly router: Router,
   ) {}

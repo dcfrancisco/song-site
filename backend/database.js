@@ -42,8 +42,8 @@ if (!database.prepare("PRAGMA table_info(users)").all().some((column) => column.
 }
 database.exec("CREATE UNIQUE INDEX IF NOT EXISTS idx_users_email_nocase ON users (email COLLATE NOCASE)");
 
-// Local-development bootstrap: the seeded administrator gets a known initial password that must be changed at first sign-in.
-if (String(process.env.AUTH_MODE || "").toLowerCase() === "development") {
+// Local SQLite bootstrap for the seeded administrator; production credentials must be configured explicitly.
+if (["development", "local"].includes(String(process.env.AUTH_MODE || "").toLowerCase()) && process.env.NODE_ENV !== "production") {
   const { hashPassword } = require("./auth/password");
   const initialPassword = process.env.DEFAULT_ADMIN_PASSWORD || "ChangeMe-Song-2026!";
   database.prepare("UPDATE users SET password_hash = ? WHERE id = 'user-dcfran' AND password_hash IS NULL").run(hashPassword(initialPassword));

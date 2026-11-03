@@ -109,7 +109,7 @@ h1 {
   outline-offset: 2px;
 }
 
-.email-sign-in form .secondary-action {
+.email-sign-in form .primary-action {
   width: 100%;
   min-height: 48px;
   margin-top: 14px;
@@ -147,8 +147,7 @@ h1 {
   margin-top: 30px;
 }
 
-.primary-action,
-.secondary-action {
+.primary-action {
   min-width: 180px;
   height: 54px;
   padding: 0 20px;
@@ -165,14 +164,7 @@ h1 {
   color: #07111f;
 }
 
-.secondary-action {
-  background: rgba(255, 255, 255, 0.06);
-  color: #f4e8ff;
-  border-color: rgba(161, 0, 255, 0.36);
-}
-
-.primary-action:hover,
-.secondary-action:hover {
+.primary-action:hover {
   transform: translateY(-1px);
 }
 
@@ -196,8 +188,7 @@ h1 {
     flex-direction: column;
   }
 
-  .primary-action,
-  .secondary-action {
+  .primary-action {
     width: 100%;
   }
 }

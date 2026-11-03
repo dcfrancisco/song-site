@@ -11,7 +11,6 @@ describe('IndexComponent', () => {
   let fixture: ComponentFixture<IndexComponent>;
   let authService: {
     isAuthenticated: ReturnType<typeof vi.fn>;
-    displayName: ReturnType<typeof vi.fn>;
     isBusy: ReturnType<typeof vi.fn>;
     error: ReturnType<typeof vi.fn>;
     initialize: ReturnType<typeof vi.fn>;
@@ -26,7 +25,6 @@ describe('IndexComponent', () => {
     sessionState.set({ mode: 'guest', authenticated: false, identity: null });
     authService = {
       isAuthenticated: vi.fn(() => false),
-      displayName: vi.fn(() => 'Guest'),
       isBusy: vi.fn(() => false),
       error: vi.fn(() => null),
       initialize: vi.fn(() => Promise.resolve()),
@@ -50,15 +48,15 @@ describe('IndexComponent', () => {
     await fixture.whenStable();
   });
 
-  it('offers SSO and an email/password form without exposing role selectors', () => {
+  it('offers both SSO and email/password sign-in without a development bypass', () => {
     const text = fixture.nativeElement.textContent as string;
     expect(text).toContain('Sign in with Microsoft SSO');
     expect(text).toContain('Sign in with email');
-    expect(text).not.toContain('Local Administrator');
-    expect(text).not.toContain('Local Author');
+    expect(text).not.toContain('Continue to home');
+    expect(text).not.toContain('Local Development Mode');
     expect(fixture.nativeElement.querySelector('#email-address')).not.toBeNull();
     expect(fixture.nativeElement.querySelector('#password').type).toBe('password');
-    expect(fixture.nativeElement.querySelector('.email-sign-in .secondary-action').disabled).toBe(false);
+    expect(fixture.nativeElement.querySelector('.email-sign-in .primary-action').disabled).toBe(false);
   });
 
   it('signs in with email and password and shows a generic error on failure', async () => {
@@ -75,27 +73,26 @@ describe('IndexComponent', () => {
     expect(component.emailError()).toBe('Invalid email or password.');
   });
 
-  it('starts the Microsoft SSO flow from its sign-in button', () => {
-    const button = fixture.nativeElement.querySelector('.primary-action') as HTMLButtonElement;
+  it('starts the existing Microsoft SSO sign-in flow', () => {
+    const button = fixture.nativeElement.querySelector('.actions .primary-action') as HTMLButtonElement;
     button.click();
     expect(authService.login).toHaveBeenCalledOnce();
   });
 
-  it('keeps an already authenticated local development identity on sign-in until it continues', async () => {
+  it('keeps a development session on the sign-in page without offering a bypass button', async () => {
     const router = TestBed.inject(Router);
-    const navigate = vi.spyOn(router, 'navigateByUrl');
+    const navigate = vi.spyOn(router, 'navigateByUrl').mockResolvedValue(true);
     sessionState.set({
       mode: 'development',
       authenticated: true,
-      identity: { displayName: 'Local Administrator', role: 'administrator', permissions: [] },
+      identity: { displayName: 'Administrator', role: 'administrator', permissions: [] },
     });
 
     fixture = TestBed.createComponent(IndexComponent);
     fixture.detectChanges();
     await fixture.whenStable();
     expect(navigate).not.toHaveBeenCalled();
-
-    (fixture.nativeElement.querySelector('.continue-action') as HTMLButtonElement).click();
-    expect(navigate).toHaveBeenCalledWith('/home');
+    expect(fixture.nativeElement.querySelector('.continue-action')).toBeNull();
+    expect(fixture.nativeElement.querySelector('#email-address')).not.toBeNull();
   });
 });
