@@ -16,20 +16,30 @@ function createAuthConfig(environment = process.env) {
   const nodeEnv = String(environment.NODE_ENV || 'development').toLowerCase();
   const authMode = String(environment.AUTH_MODE || (nodeEnv === 'production' ? 'guest' : 'guest')).toLowerCase();
   const host = environment.HOST || (nodeEnv === 'development' ? '127.0.0.1' : '0.0.0.0');
-  const sessionSecret = environment.DEV_SESSION_SECRET || '';
+  const sessionSecret = environment.SESSION_SECRET || environment.DEV_SESSION_SECRET || '';
   const defaultDevelopmentFixture = String(environment.DEV_DEFAULT_FIXTURE || '').trim();
   const defaultDevelopmentEmail = String(environment.DEV_DEFAULT_EMAIL || '').trim().toLowerCase();
   const backendPort = Number(environment.PORT || 5001);
   const configuredOrigins = parseAllowedOrigins(environment.DEV_ALLOWED_ORIGINS);
   const deploymentMarker = environment.DEPLOYMENT_ENV || environment.WEBSITE_HOSTNAME || environment.CONTAINER_APP_NAME || '';
   const isDevelopmentAuth = authMode === 'development';
+  const isLocalAuth = authMode === 'local';
+  const isSessionAuth = isDevelopmentAuth || isLocalAuth;
   const allowContainerDevelopmentAuth = String(environment.DEV_AUTH_CONTAINER_OVERRIDE || '').toLowerCase() === 'true';
   const allowedOrigins = isDevelopmentAuth
     ? [...new Set([...configuredOrigins, `http://localhost:${backendPort}`, `http://127.0.0.1:${backendPort}`])]
-    : configuredOrigins;
+    : isLocalAuth ? (environment.ALLOWED_ORIGINS || environment.DEV_ALLOWED_ORIGINS ? parseAllowedOrigins(environment.ALLOWED_ORIGINS || environment.DEV_ALLOWED_ORIGINS) : []) : configuredOrigins;
 
-  if (!['guest', 'development', 'entra'].includes(authMode)) {
-    throw new Error('AUTH_MODE must be guest, development, or entra');
+  if (!['guest', 'development', 'local', 'entra'].includes(authMode)) {
+    throw new Error('AUTH_MODE must be guest, development, local, or entra');
+  }
+
+  if (isLocalAuth) {
+    if (sessionSecret.length < 32) throw new Error('SESSION_SECRET must contain at least 32 characters');
+    if (!allowedOrigins.length) throw new Error('AUTH_MODE=local requires ALLOWED_ORIGINS to list the browser origin(s) of the site');
+    if (nodeEnv === 'production' && allowedOrigins.some((origin) => !/^https:\/\//.test(origin) && !/^http:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/.test(origin))) {
+      throw new Error('AUTH_MODE=local requires https origins in production');
+    }
   }
 
   if (isDevelopmentAuth) {
@@ -62,6 +72,10 @@ function createAuthConfig(environment = process.env) {
     authMode,
     host,
     isDevelopmentAuth,
+    isLocalAuth,
+    isSessionAuth,
+    sessionProvider: isLocalAuth ? 'local' : 'development',
+    secureCookies: nodeEnv === 'production',
     defaultDevelopmentFixture,
     defaultDevelopmentEmail,
     sessionSecret,

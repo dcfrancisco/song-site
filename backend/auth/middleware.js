@@ -10,11 +10,11 @@ function createAuthService(authConfig, identityStore) {
   const sessions = new Map();
 
   async function getSessionFromRequest(req) {
-    if (!authConfig.isDevelopmentAuth) return null;
+    if (!authConfig.isSessionAuth) return null;
     const cookies = parseCookieHeader(req.get('cookie'));
     const session = verifyDevelopmentSession(cookies[COOKIE_NAME], authConfig.sessionSecret, sessions);
     if (!session || !identityStore?.getPrincipalBySubject) return session;
-    const principal = await identityStore.getPrincipalBySubject(session.principal.subject, 'development');
+    const principal = await identityStore.getPrincipalBySubject(session.principal.subject, authConfig.sessionProvider);
     if (!principal) return null;
     session.principal = principal;
     return applyDefaultDevelopmentEmail(session);
@@ -38,7 +38,7 @@ function createAuthService(authConfig, identityStore) {
   }
 
   function requireCsrf(req, res, next) {
-    if (authConfig.isDevelopmentAuth && req.principal?.provider === 'development') {
+    if (authConfig.isSessionAuth && req.principal?.provider === authConfig.sessionProvider) {
       if (!isAllowedOrigin(req) || req.get('x-csrf-token') !== req.authSession.csrfToken) {
         return res.status(403).json({ error: 'CSRF validation failed' });
       }
@@ -73,7 +73,7 @@ function createAuthService(authConfig, identityStore) {
     const session = createDevelopmentSession(fixtureName, authConfig.sessionSecret);
     if (!session) return null;
     if (identityStore?.getPrincipalBySubject) {
-      session.principal = await identityStore.getPrincipalBySubject(session.principal.subject, 'development');
+      session.principal = await identityStore.getPrincipalBySubject(session.principal.subject, authConfig.sessionProvider);
       if (!session.principal || !session.principal.isActive) return null;
     }
     applyDefaultDevelopmentEmail(session);
@@ -83,7 +83,7 @@ function createAuthService(authConfig, identityStore) {
 
   async function createUserSessionById(userId) {
     const session = createUserSession(userId, authConfig.sessionSecret);
-    session.principal = await identityStore.getPrincipalBySubject(userId, 'development');
+    session.principal = await identityStore.getPrincipalBySubject(userId, authConfig.sessionProvider);
     if (!session.principal || !session.principal.isActive) return null;
     sessions.set(session.sessionId, session);
     return session;
@@ -134,8 +134,8 @@ function createAuthService(authConfig, identityStore) {
   };
 }
 
-function serializeCookie(name, value, maxAge) {
-  return `${name}=${value}; Max-Age=${maxAge}; Path=/; HttpOnly; SameSite=Strict`;
+function serializeCookie(name, value, maxAge, secure = false) {
+  return `${name}=${value}; Max-Age=${maxAge}; Path=/; HttpOnly; SameSite=Strict${secure ? '; Secure' : ''}`;
 }
 
 function clearCookie(name) {

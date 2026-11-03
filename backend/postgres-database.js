@@ -210,7 +210,7 @@ async function restoreContentVersion(pageKey, versionId, principal, expectedVers
 async function getPrincipalBySubject(subject, provider = 'development') {
   const result = await getPostgresPool().query(`SELECT u.id,u.email,u.display_name,u.is_active,u.provider,u.subject,r.role_key,p.permission_key FROM users u LEFT JOIN rbac_user_roles ur ON ur.user_id=u.id LEFT JOIN rbac_roles r ON r.id=ur.role_id LEFT JOIN rbac_role_permissions rp ON rp.role_id=r.id LEFT JOIN rbac_permissions p ON p.id=rp.permission_id WHERE u.provider=$1 AND u.subject=$2`, [provider, subject]);
   if (!result.rows.length) return null;
-  return { provider: result.rows[0].provider, issuer: result.rows[0].provider === 'development' ? 'local.song-site' : 'entra', subject: result.rows[0].subject, userId: result.rows[0].id, displayName: result.rows[0].display_name, email: result.rows[0].email, roles: [...new Set(result.rows.map(row => row.role_key).filter(Boolean))], role: result.rows.find(row => row.role_key)?.role_key || null, permissions: [...new Set(result.rows.map(row => row.permission_key).filter(Boolean))], isActive: result.rows[0].is_active };
+  return { provider: result.rows[0].provider, issuer: ['development', 'local'].includes(result.rows[0].provider) ? 'local.song-site' : 'entra', subject: result.rows[0].subject, userId: result.rows[0].id, displayName: result.rows[0].display_name, email: result.rows[0].email, roles: [...new Set(result.rows.map(row => row.role_key).filter(Boolean))], role: result.rows.find(row => row.role_key)?.role_key || null, permissions: [...new Set(result.rows.map(row => row.permission_key).filter(Boolean))], isActive: result.rows[0].is_active };
 }
 
 async function listRbacUsers() {
@@ -282,6 +282,40 @@ async function getDashboardSummary(principal) {
   ] };
 }
 
+async function getLoginCredentialByEmail(email) {
+  const result = await getPostgresPool().query(`SELECT id, password_hash AS "passwordHash", is_active AS "isActive" FROM users WHERE provider='local' AND lower(email)=lower($1)`, [String(email)]);
+  const row = result.rows[0];
+  return row ? { id: String(row.id), passwordHash: row.passwordHash, isActive: Boolean(row.isActive) } : null;
+}
+
+async function setUserPasswordHash(userId, passwordHash, actor) {
+  const result = await getPostgresPool().query(`UPDATE users SET password_hash=$1, must_change_password=FALSE, updated_at=NOW() WHERE id=$2 AND provider='local'`, [passwordHash, userId]);
+  if (!result.rowCount) return false;
+  if (actor) await getPostgresPool().query('INSERT INTO authorization_audit_events (actor_subject,actor_provider,action,target_user_id,metadata) VALUES ($1,$2,$3,$4,$5)', [actor.subject, actor.provider, 'password_set', userId, '{}']);
+  return true;
+}
+
+// Only fills in a missing password; an existing (possibly user-changed) password is never overwritten.
+async function setInitialAdministratorPassword(email, passwordHash) {
+  const result = await getPostgresPool().query(`UPDATE users SET password_hash=$1, updated_at=NOW() WHERE provider='local' AND lower(email)=lower($2) AND password_hash IS NULL`, [passwordHash, email]);
+  return result.rowCount > 0;
+}
+
+async function createLocalUser({ email, displayName, passwordHash, roles }, actor) {
+  const client = await getPostgresPool().connect();
+  try {
+    await client.query('BEGIN');
+    const found = roles.length ? await client.query('SELECT role_key FROM rbac_roles WHERE role_key = ANY($1::text[])', [roles]) : { rowCount: 0 };
+    if (found.rowCount !== roles.length) { await client.query('ROLLBACK'); return null; }
+    const id = require('node:crypto').randomUUID();
+    await client.query(`INSERT INTO users (id, email, display_name, role, provider, subject, password_hash) VALUES ($1,$2,$3,$4,'local',$5,$6)`, [id, email, displayName, roles[0] || 'user', id, passwordHash]);
+    for (const role of roles) await client.query('INSERT INTO rbac_user_roles (user_id,role_id,assigned_by) SELECT $1,id,$2 FROM rbac_roles WHERE role_key=$3', [id, actor.subject, role]);
+    await client.query('INSERT INTO authorization_audit_events (actor_subject,actor_provider,action,target_user_id,metadata) VALUES ($1,$2,$3,$4,$5)', [actor.subject, actor.provider, 'user_created', id, JSON.stringify({ roles })]);
+    await client.query('COMMIT');
+    return (await listRbacUsers()).find(candidate => String(candidate.id) === String(id));
+  } catch (error) { await client.query('ROLLBACK'); throw error; } finally { client.release(); }
+}
+
 async function assignRbacRoles(userId, roleKeys, actor) {
   const roles = [...new Set(roleKeys)];
   const client = await getPostgresPool().connect();
@@ -299,4 +333,4 @@ async function assignRbacRoles(userId, roleKeys, actor) {
   } catch (error) { await client.query('ROLLBACK'); throw error; } finally { client.release(); }
 }
 
-module.exports = { createTask, getTasks, getProgress, updateTask, updateTaskStatus, getLeadership, updateLeadershipItem, getHomeSpotlight, updateHomeSpotlight, getAnnouncements, updateAnnouncement, getSongLinks, updateSongLink, getJourneyItems, updateJourneyItem, getPublishedContent, getDraftContent, previewContent, saveContentDraft, discardContentDraft, publishContent, listContentVersions, listContentAuditEvents, restoreContentVersion, getPrincipalBySubject, listRbacUsers, updateUserProfile, getDashboardSummary, assignRbacRoles, close: closePostgresPool };
+module.exports = { createTask, getTasks, getProgress, updateTask, updateTaskStatus, getLeadership, updateLeadershipItem, getHomeSpotlight, updateHomeSpotlight, getAnnouncements, updateAnnouncement, getSongLinks, updateSongLink, getJourneyItems, updateJourneyItem, getPublishedContent, getDraftContent, previewContent, saveContentDraft, discardContentDraft, publishContent, listContentVersions, listContentAuditEvents, restoreContentVersion, getPrincipalBySubject, listRbacUsers, updateUserProfile, getDashboardSummary, assignRbacRoles, getLoginCredentialByEmail, setUserPasswordHash, setInitialAdministratorPassword, createLocalUser, close: closePostgresPool };

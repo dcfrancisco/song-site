@@ -44,7 +44,7 @@ export class Navbar {
     this.logoutError.set(null);
 
     try {
-      if (this.session().mode === 'development') {
+      if (this.session().mode === 'development' || this.session().mode === 'local') {
         await this.sessionService.endDevelopmentSession();
         await this.router.navigateByUrl('/signin');
         return;

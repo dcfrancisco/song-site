@@ -123,3 +123,15 @@ jobs:
           PGPASSWORD: ${{ secrets.PGPASSWORD }}
           PGSSL: "true"
         run: npm run db:postgres:migrate
+
+      - name: Deploy images to Container Apps
+        if: ${{ vars.AZURE_RESOURCE_GROUP != '' && vars.AZURE_WEB_APP != '' && vars.AZURE_API_APP != '' }}
+        env:
+          RESOURCE_GROUP: ${{ vars.AZURE_RESOURCE_GROUP }}
+          WEB_APP: ${{ vars.AZURE_WEB_APP }}
+          API_APP: ${{ vars.AZURE_API_APP }}
+          ACR_LOGIN_SERVER: ${{ vars.AZURE_ACR_LOGIN_SERVER }}
+        run: |
+          set -euo pipefail
+          az containerapp update -g "$RESOURCE_GROUP" -n "$API_APP" --image "${ACR_LOGIN_SERVER}/song-site-api:${GITHUB_SHA}"
+          az containerapp update -g "$RESOURCE_GROUP" -n "$WEB_APP" --image "${ACR_LOGIN_SERVER}/song-site-web:${GITHUB_SHA}"

@@ -12,6 +12,20 @@ test('development session signatures are bound to server state and expire', () =
   assert.equal(verifyDevelopmentSession(session.cookieValue, 'a'.repeat(32), sessions, (session.expiresAt + 1) * 1000), null);
 });
 
+test('local password authentication is production-capable but demands a secret, https origins and secure cookies', () => {
+  const base = { AUTH_MODE: 'local', NODE_ENV: 'production', SESSION_SECRET: 'a'.repeat(32), ALLOWED_ORIGINS: 'https://site.example.com' };
+  const config = createAuthConfig(base);
+  assert.equal(config.isSessionAuth, true);
+  assert.equal(config.isDevelopmentAuth, false);
+  assert.equal(config.sessionProvider, 'local');
+  assert.equal(config.secureCookies, true);
+  assert.deepEqual(config.allowedOrigins, ['https://site.example.com']);
+  assert.throws(() => createAuthConfig({ ...base, SESSION_SECRET: 'short' }), /32 characters/);
+  assert.throws(() => createAuthConfig({ ...base, ALLOWED_ORIGINS: '' }), /ALLOWED_ORIGINS/);
+  assert.throws(() => createAuthConfig({ ...base, ALLOWED_ORIGINS: 'http://site.example.com' }), /https/);
+  assert.throws(() => createAuthConfig({ ...base, DEV_DEFAULT_FIXTURE: 'administrator' }), /requires AUTH_MODE=development/);
+});
+
 test('development authentication rejects production and non-loopback deployment settings', () => {
   assert.throws(() => createAuthConfig({ AUTH_MODE: 'development', NODE_ENV: 'production', DEV_SESSION_SECRET: 'a'.repeat(32) }), /forbidden/);
   assert.throws(() => createAuthConfig({ AUTH_MODE: 'development', NODE_ENV: 'development', HOST: '0.0.0.0', DEV_SESSION_SECRET: 'a'.repeat(32) }), /loopback/);

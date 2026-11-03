@@ -178,3 +178,21 @@ Migration failures must block promotion. Do not make destructive schema changes 
 ## Current status
 
 The image-publishing workflow now includes a protected PostgreSQL migration step in the `production` GitHub environment. Azure resources, Container Apps deployment/promotion, PostgreSQL production provisioning, and Entra API-token validation remain unimplemented. Configure the `PG*` variables and secrets as protected `production` environment values before enabling the workflow on `main`.
+
+## Email/password sign-in without SSO (`AUTH_MODE=local`)
+
+Use this when Entra SSO is unavailable. The backend authenticates against the PostgreSQL `users` table (scrypt hashes, lockout, CSRF, secure cookies).
+
+One-time setup (run by someone with Azure access; replace names):
+
+```
+az containerapp secret set -g <rg> -n <api-app> --secrets session-secret=<random-32+-chars> admin-password=<initial-admin-password>
+az containerapp update -g <rg> -n <api-app> --min-replicas 1 --max-replicas 1 \
+  --set-env-vars AUTH_MODE=local NODE_ENV=production SESSION_SECRET=secretref:session-secret \
+  DEFAULT_ADMIN_EMAIL=dcfran@gmail.com DEFAULT_ADMIN_PASSWORD=secretref:admin-password \
+  ALLOWED_ORIGINS=https://<web-app-fqdn>
+```
+
+Then set the GitHub repository variables `AZURE_RESOURCE_GROUP`, `AZURE_WEB_APP`, `AZURE_API_APP`; the publish workflow deploys the commit-tagged images after the migrations. The OIDC service principal needs Contributor on the resource group.
+
+Limits: sessions and the login lockout are in memory, so the API must stay at one replica; the lockout is keyed by IP, which behind the ingress is shared (`trust proxy` is not configured). The initial password is applied only while the user has none; users change it in Settings.

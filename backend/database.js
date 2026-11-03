@@ -375,15 +375,15 @@ function updateJourneyItem(id, updates) {
 }
 
 function getPrincipalBySubject(subject, provider = 'development') {
-  const rows = database.prepare(`SELECT u.id, u.email, u.display_name, u.is_active, u.must_change_password, 'development' AS provider, u.id AS subject,
+  const rows = database.prepare(`SELECT u.id, u.email, u.display_name, u.is_active, u.must_change_password, ? AS provider, u.id AS subject,
     r.role_key, p.permission_key FROM users u
     LEFT JOIN rbac_user_roles ur ON ur.user_id = u.id
     LEFT JOIN rbac_roles r ON r.id = ur.role_id
     LEFT JOIN rbac_role_permissions rp ON rp.role_id = r.id
     LEFT JOIN rbac_permissions p ON p.id = rp.permission_id
-    WHERE ? = 'development' AND u.id = ?`).all(provider, subject);
+    WHERE ? IN ('development', 'local') AND u.id = ?`).all(provider, provider, subject);
   if (!rows.length) return null;
-  return { provider: rows[0].provider, issuer: rows[0].provider === 'development' ? 'local.song-site' : 'entra', subject: rows[0].subject, userId: rows[0].id, displayName: rows[0].display_name, email: rows[0].email, roles: [...new Set(rows.map(row => row.role_key).filter(Boolean))], role: rows.find(row => row.role_key)?.role_key || null, permissions: [...new Set(rows.map(row => row.permission_key).filter(Boolean))], isActive: Boolean(rows[0].is_active), mustChangePassword: Boolean(rows[0].must_change_password) };
+  return { provider: rows[0].provider, issuer: ['development', 'local'].includes(rows[0].provider) ? 'local.song-site' : 'entra', subject: rows[0].subject, userId: rows[0].id, displayName: rows[0].display_name, email: rows[0].email, roles: [...new Set(rows.map(row => row.role_key).filter(Boolean))], role: rows.find(row => row.role_key)?.role_key || null, permissions: [...new Set(rows.map(row => row.permission_key).filter(Boolean))], isActive: Boolean(rows[0].is_active), mustChangePassword: Boolean(rows[0].must_change_password) };
 }
 
 function listRbacUsers() {

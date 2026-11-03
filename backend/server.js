@@ -16,6 +16,7 @@ const database = config.databaseDriver === "postgres"
 const app = express();
 const PORT = Number(process.env.PORT || 5001);
 const auth = createAuthService(config.auth, database);
+const sessionCookie = (value, maxAge) => serializeCookie(COOKIE_NAME, value, maxAge, config.auth.secureCookies);
 const { ContentConflictError, ContentValidationError } = require('./content/errors');
 
 app.use(cors({
@@ -96,7 +97,7 @@ app.get("/api/v1/session", async (req, res, next) => {
       if (!session) return res.status(503).json({ error: "The configured local development identity is unavailable" });
       req.authSession = session;
       req.principal = session.principal;
-      res.set("Set-Cookie", serializeCookie(COOKIE_NAME, session.cookieValue, 1800));
+      res.set("Set-Cookie", sessionCookie(session.cookieValue, 1800));
     } catch (error) {
       return next(error);
     }
@@ -114,7 +115,7 @@ app.post("/api/v1/dev/session", requireObjectBody, async (req, res, next) => {
   }
   const session = await auth.createSession(req.body.fixture);
   if (!session) return res.status(400).json({ error: "Unknown development identity fixture" });
-  res.set("Set-Cookie", serializeCookie(COOKIE_NAME, session.cookieValue, 1800));
+  res.set("Set-Cookie", sessionCookie(session.cookieValue, 1800));
   res.json({
     ...auth.sessionSummary({ principal: session.principal }),
     csrfToken: session.csrfToken,
@@ -144,7 +145,7 @@ function recordLoginFailure(key) {
 
 app.post("/api/v1/auth/login", requireObjectBody, async (req, res, next) => {
   try {
-    if (!config.auth.isDevelopmentAuth || typeof database.getLoginCredentialByEmail !== 'function') {
+    if (!config.auth.isSessionAuth || typeof database.getLoginCredentialByEmail !== 'function') {
       return res.status(404).json({ error: "Password sign-in is unavailable" });
     }
     const origin = req.get('origin');
@@ -165,7 +166,7 @@ app.post("/api/v1/auth/login", requireObjectBody, async (req, res, next) => {
     }
     loginFailures.delete(key);
     auth.revokeSession(req);
-    res.set("Set-Cookie", serializeCookie(COOKIE_NAME, session.cookieValue, 1800));
+    res.set("Set-Cookie", sessionCookie(session.cookieValue, 1800));
     res.json({ ...auth.sessionSummary({ principal: session.principal }), csrfToken: session.csrfToken });
   } catch (error) { next(error); }
 });
@@ -236,11 +237,11 @@ app.put('/api/v1/rbac/users/:userId/roles', ...requireMutation('rbac:users:manag
 });
 
 app.delete("/api/v1/dev/session", (req, res) => {
-  if (!config.auth.isDevelopmentAuth || !auth.isLoopbackRequest(req)) {
-    return res.status(404).json({ error: "Development authentication is unavailable" });
+  if (!config.auth.isSessionAuth || (config.auth.isDevelopmentAuth && !auth.isLoopbackRequest(req))) {
+    return res.status(404).json({ error: "Session sign-out is unavailable" });
   }
   auth.revokeSession(req);
-  res.set("Set-Cookie", serializeCookie(COOKIE_NAME, SIGNED_OUT_SESSION_COOKIE_VALUE, 86400));
+  res.set("Set-Cookie", sessionCookie(SIGNED_OUT_SESSION_COOKIE_VALUE, 86400));
   res.status(204).end();
 });
 
@@ -413,6 +414,20 @@ app.use((error, _req, res, _next) => {
   res.status(500).json({ error: "Internal server error" });
 });
 
+async function ensureInitialAdministrator() {
+  const password = process.env.DEFAULT_ADMIN_PASSWORD;
+  if (!config.auth.isLocalAuth || !password || typeof database.setInitialAdministratorPassword !== 'function') return;
+  const problem = validatePasswordStrength(password);
+  if (problem) return console.error(`DEFAULT_ADMIN_PASSWORD ignored: ${problem}`);
+  const email = String(process.env.DEFAULT_ADMIN_EMAIL || 'dcfran@gmail.com').trim().toLowerCase();
+  try {
+    const applied = await database.setInitialAdministratorPassword(email, hashPassword(password));
+    console.log(applied ? `Initial administrator password set for ${email}.` : `Initial administrator ${email} already has a password or does not exist; left unchanged.`);
+  } catch (error) {
+    console.error(`Initial administrator bootstrap failed (${error.message})`);
+  }
+}
+
 if (require.main === module) {
   app.listen(PORT, config.auth.host, () => {
     console.log(`Server running at http://${config.auth.host}:${PORT}`);
@@ -422,6 +437,7 @@ if (require.main === module) {
       console.log(`Database configured: PostgreSQL ${config.postgres.host}:${config.postgres.port}/${config.postgres.database} ssl=${config.postgres.ssl} source=${source}`);
       checkPostgresConnection()
         .then(() => console.log("Database connection: PostgreSQL ready"))
+        .then(ensureInitialAdministrator)
         .catch((error) => console.error(`Database connection: PostgreSQL unavailable (${error.message})`));
     } else {
       console.log(`Database configured: SQLite ${config.databasePath}`);
