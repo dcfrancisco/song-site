@@ -80,11 +80,28 @@ echo "Checking frontend and SPA fallback..."
 curl --fail --silent --show-error "$FRONTEND_URL/" >/dev/null
 curl --fail --silent --show-error "$FRONTEND_URL/home" >/dev/null
 
-echo "Checking frontend /api proxy and representative database operation..."
-curl --fail --silent --show-error "$FRONTEND_URL/api/leadership" > /tmp/song-site-leadership.json
-curl --fail --silent --show-error "$FRONTEND_URL/api/tasks" > /tmp/song-site-tasks.json
-curl --fail --silent --show-error "$FRONTEND_URL/api/home/spotlight" > /tmp/song-site-home-spotlight.json
-curl --fail --silent --show-error "$FRONTEND_URL/api/song-links" > /tmp/song-site-song-links.json
-node -e "const fs = require('fs'); const leadership = JSON.parse(fs.readFileSync('/tmp/song-site-leadership.json', 'utf8')); const tasks = JSON.parse(fs.readFileSync('/tmp/song-site-tasks.json', 'utf8')); const spotlight = JSON.parse(fs.readFileSync('/tmp/song-site-home-spotlight.json', 'utf8')); const songLinks = JSON.parse(fs.readFileSync('/tmp/song-site-song-links.json', 'utf8')); const cards = songLinks.reduce((total, group) => total + group.cards.length, 0); if ((leadership.marketLeads?.length ?? 0) !== 2 || (leadership.practiceLeads?.length ?? 0) !== 4 || (leadership.capabilityLeads?.length ?? 0) !== 4 || (leadership.enablementChampions?.length ?? 0) !== 7 || !tasks.length || spotlight.persons?.length !== 4 || cards !== 14) { throw new Error('PostgreSQL parity API counts did not match the SQLite data contract'); } console.log('API proxy, PostgreSQL data, and SQLite parity counts OK');"
+echo "Checking frontend /api proxy and that the authentication gate is enforced..."
+curl --fail --silent --show-error "$FRONTEND_URL/api/v1/session" >/dev/null
+for protected_path in /api/leadership /api/tasks /api/home/spotlight /api/song-links; do
+  status="$(curl --silent --output /dev/null --write-out '%{http_code}' "$FRONTEND_URL$protected_path")"
+  if [ "$status" != "401" ]; then
+    echo "Expected unauthenticated ${protected_path} to return 401 through the proxy, got ${status}." >&2
+    exit 1
+  fi
+done
+
+echo "Checking PostgreSQL data parity through the database adapter..."
+# The API requires authentication, so the data contract is asserted against the adapter inside the backend container.
+docker compose exec -T backend node - <<'NODE'
+const db = require('./postgres-database');
+(async () => {
+  const [leadership, tasks, spotlight, songLinks] = await Promise.all([db.getLeadership(), db.getTasks('tasks'), db.getHomeSpotlight(), db.getSongLinks()]);
+  const cards = songLinks.reduce((total, group) => total + group.cards.length, 0);
+  if ((leadership.marketLeads?.length ?? 0) !== 2 || (leadership.practiceLeads?.length ?? 0) !== 4 || (leadership.capabilityLeads?.length ?? 0) !== 4 || (leadership.enablementChampions?.length ?? 0) !== 7 || !tasks.length || spotlight.persons?.length !== 4 || cards !== 14) {
+    throw new Error('PostgreSQL parity data counts did not match the SQLite data contract');
+  }
+  console.log('PostgreSQL data and SQLite parity counts OK');
+})().catch(error => { console.error(error); process.exitCode = 1; }).finally(() => db.close());
+NODE
 
 echo "Docker smoke test passed."
