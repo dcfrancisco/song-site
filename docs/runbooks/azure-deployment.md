@@ -1,6 +1,6 @@
 # Azure Deployment Setup
 
-This runbook describes the preparation required for deploying Song Site to Azure from GitHub Actions. It is a setup and release guide; it does not create Azure resources or add deployment workflows.
+This runbook covers the GitHub Actions development preview deployment and the additional preparation required for a production release.
 
 The target architecture is defined by [ADR-0031](../adr/0031-azure-github-deployment-pipeline.md). The related implementation work is tracked under `WP-032` and `WP-033`.
 
@@ -103,18 +103,13 @@ Do not use a long-lived Azure service-principal secret when OIDC federation is a
 
 ## Required GitHub environment values
 
-Names should be finalized with the deployment implementation, but the pipeline will need values equivalent to:
+The `publish-azure-images.yml` workflow targets the GitHub `development` environment. Configure development-only values there using these names:
 
-- Azure subscription and tenant identifiers;
-- Azure client/application identifier for the federated deployment identity;
-- resource group and Container Apps environment names;
-- Container Registry name and login server;
-- frontend and backend image repository names;
-- staging or production API URL;
-- frontend Entra redirect URI, client ID, and tenant ID;
-- `PGHOST`, `PGPORT`, `PGDATABASE`, and `PGSSL` as protected GitHub environment variables;
-- `PGUSER` and `PGPASSWORD` as protected GitHub environment secrets, or future Azure-managed secret references;
-- migration and smoke-test configuration.
+- Variables: `DEV_AZURE_RESOURCE_GROUP`, `DEV_AZURE_WEB_APP`, `DEV_AZURE_API_APP`, `DEV_PGHOST`, `DEV_PGPORT`, `DEV_PGDATABASE`, and `DEV_PGSSL`.
+- Secrets: `DEV_AZURE_CLIENT_ID`, `DEV_AZURE_TENANT_ID`, `DEV_AZURE_SUBSCRIPTION_ID`, `DEV_PGUSER`, `DEV_PGPASSWORD`, `DEV_VITE_AZURE_REDIRECT_URI`, `DEV_VITE_ENTRA_CLIENT_ID`, and `DEV_VITE_ENTRA_TENANT_ID`.
+- Repository variables shared by the preview: `AZURE_ACR_NAME` and `AZURE_ACR_LOGIN_SERVER`.
+
+The workflow fails before Azure login, migration, or deployment if any required value is missing. Do not copy production database credentials or production resource identifiers into the `development` environment. The deployed development API Container App must also be configured to use the development database.
 
 Never commit values for `DATABASE_URL`, database passwords, client secrets, signing keys, or API keys.
 
@@ -177,7 +172,7 @@ Migration failures must block promotion. Do not make destructive schema changes 
 
 ## Current status
 
-The image-publishing workflow now includes a protected PostgreSQL migration step in the `production` GitHub environment. Azure resources, Container Apps deployment/promotion, PostgreSQL production provisioning, and Entra API-token validation remain unimplemented. Configure the `PG*` variables and secrets as protected `production` environment values before enabling the workflow on `main`.
+The image-publishing workflow deploys commit-tagged images to the `development` GitHub environment after applying development PostgreSQL migrations. The development environment configuration is not present yet, so the workflow will fail its required-configuration check until the `DEV_*` values above are added. Production promotion, production migration approval, post-deployment smoke tests, rollback evidence, and Entra API-token validation remain separate work and are not implemented by this preview deployment.
 
 ## Email/password sign-in without SSO (`AUTH_MODE=local`)
 

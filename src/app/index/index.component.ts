@@ -76,7 +76,7 @@ export class IndexComponent implements OnInit {
     const destination =
       returnUrl?.startsWith('/') && !returnUrl.startsWith('//') && !returnUrl.startsWith('/signin')
         ? returnUrl
-        : '/home';
+        : '/dashboard';
     void this.router.navigateByUrl(destination);
   }
 }
