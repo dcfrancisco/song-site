@@ -105,10 +105,10 @@ Do not use a long-lived Azure service-principal secret when OIDC federation is a
 
 The `publish-azure-images.yml` workflow deploys to the single shared preview target using repository-level configuration. Do not create a separate `development` GitHub environment or duplicate the existing settings with `DEV_*` names.
 
-- Variables: `AZURE_RESOURCE_GROUP`, `AZURE_WEB_APP`, `AZURE_API_APP`, `AZURE_ACR_NAME`, `AZURE_ACR_LOGIN_SERVER`, `PGHOST`, `PGPORT`, `PGDATABASE`, and `PGSSL`.
+- Variables: `AZURE_ACR_NAME`, `AZURE_ACR_LOGIN_SERVER`, `PGHOST`, `PGPORT`, `PGDATABASE`, and `PGSSL`.
 - Secrets: `AZURE_CLIENT_ID`, `AZURE_TENANT_ID`, `AZURE_SUBSCRIPTION_ID`, `PGUSER`, `PGPASSWORD`, `VITE_AZURE_REDIRECT_URI`, `VITE_ENTRA_CLIENT_ID`, and `VITE_ENTRA_TENANT_ID`.
 
-The workflow fails before Azure login, migration, or deployment if any required value is missing. The configured resource group and Container Apps must be the shared development-preview resources; do not point this workflow at production. The API Container App must use the preview database.
+The workflow discovers the existing preview Container Apps by their names (`ca-song-site-web-dev` and `ca-song-site-api-dev`) after Azure OIDC login. It requires exactly one match for each app, verifies that they share a resource group, and fails before migrations if discovery or Azure read access fails. Do not change these names to production resources. The API Container App must use the preview database.
 
 Never commit values for `DATABASE_URL`, database passwords, client secrets, signing keys, or API keys.
 
@@ -171,7 +171,7 @@ Migration failures must block promotion. Do not make destructive schema changes 
 
 ## Current status
 
-The image-publishing workflow builds commit-tagged frontend and API images from the same repository commit, applies preview PostgreSQL migrations, and deploys both images to the shared Azure preview. The repository currently lacks the target identifiers `AZURE_RESOURCE_GROUP`, `AZURE_WEB_APP`, and `AZURE_API_APP`, so deployment cannot complete until those existing resource names are configured. Production promotion, production migration approval, post-deployment smoke tests, rollback evidence, and Entra API-token validation remain separate work.
+The image-publishing workflow builds commit-tagged frontend and API images from the same repository commit, resolves the existing preview Container Apps, applies preview PostgreSQL migrations, and deploys both images to that shared target. Production promotion, production migration approval, post-deployment smoke tests, rollback evidence, and Entra API-token validation remain separate work.
 
 ## Email/password sign-in without SSO (`AUTH_MODE=local`)
 
@@ -187,6 +187,6 @@ az containerapp update -g <rg> -n <api-app> --min-replicas 1 --max-replicas 1 \
   ALLOWED_ORIGINS=https://<web-app-fqdn>
 ```
 
-Then set the GitHub repository variables `AZURE_RESOURCE_GROUP`, `AZURE_WEB_APP`, `AZURE_API_APP`; the publish workflow deploys the commit-tagged images after the migrations. The OIDC service principal needs Contributor on the resource group.
+The publish workflow discovers the existing preview Container Apps after OIDC login. The Azure identity needs permission to read and update those apps, and Contributor access to the shared preview resources.
 
 Limits: sessions and the login lockout are in memory, so the API must stay at one replica; the lockout is keyed by IP, which behind the ingress is shared (`trust proxy` is not configured). The initial password is applied only while the user has none; users change it in Settings.
