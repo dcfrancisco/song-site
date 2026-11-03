@@ -10,7 +10,7 @@ Deliver the first management-hub slice for the bench project:
 
 - Make `/dashboard` the management hub.
 - Preserve the former spotlight and announcement experience at `/home`.
-- Add an inherited-theme sidebar that collapses to glyph-only navigation.
+- Add an inherited-theme sidebar (site purple `#460073`) that collapses to glyph-only navigation and persists across tools: `/dashboard` is a layout route (`dashboard-shell.component`) whose children are the overview, `/dashboard/users`, `/dashboard/roles`, `/dashboard/resources` and `/dashboard/settings`. Legacy `/admin/users`, `/admin/roles` and `/settings` redirect to the child routes.
 - Add server-derived dashboard identity and summary cards.
 - Add current-data graphs for Journey and Training task status.
 - Add User Management, Roles and Settings routes using existing backend session and RBAC boundaries; User Management in this slice is functional for profile/status administration, while roles and permissions remain deferred.
@@ -26,7 +26,7 @@ Permissions administration, onboarding workflow, onboarding assignment/cohort an
 |---|---|---|
 | `/dashboard` is a management hub | `src/app/app.routes.ts`, `src/app/dashboard/dashboard.component.*` | Implemented locally |
 | Legacy Home remains available | `/home` route and Navbar Home link | Implemented locally |
-| Sidebar collapse is presentation-only | `dashboard.component.ts` local storage preference | Implemented locally |
+| Sidebar collapse is presentation-only | `dashboard-shell.component.ts` local storage preference | Implemented locally; verified in a browser (collapse to 78px, persists across tool navigation) |
 | Glyphs have accessible names | Link labels remain in DOM when expanded; `title` is supplied when collapsed; toggle has `aria-label` and `aria-expanded` | Implemented locally; browser verification pending |
 | Summary is server-derived | `backend/server.js`, both database adapters, OpenAPI path | Implemented locally |
 | Current progress and status graphs use real stores | Journey tasks, training tasks and announcements are aggregated by both database adapters | Implemented locally |

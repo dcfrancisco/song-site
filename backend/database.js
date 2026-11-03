@@ -26,9 +26,28 @@ ensureRbacTableShape('rbac_roles', ['role_key', 'display_name']);
 ensureRbacTableShape('rbac_permissions', ['permission_key', 'display_name']);
 ensureRbacTableShape('rbac_role_permissions', ['role_id', 'permission_id']);
 ensureRbacTableShape('rbac_user_roles', ['user_id', 'role_id']);
+ensureRbacTableShape('authorization_audit_events', ['actor_subject', 'actor_provider', 'action', 'target_user_id', 'metadata']);
 
 for (const migrationFile of fs.readdirSync(migrationsPath).filter((file) => file.endsWith(".sql")).sort()) {
+  // SQLite has no ADD COLUMN IF NOT EXISTS, and migrations re-run on every start.
+  if (migrationFile === "017-user-management-status.sql" && database.prepare("PRAGMA table_info(users)").all().some((column) => column.name === "is_active")) continue;
   database.exec(fs.readFileSync(path.join(migrationsPath, migrationFile), "utf8"));
+}
+
+if (!database.prepare("PRAGMA table_info(users)").all().some((column) => column.name === "password_hash")) {
+  database.exec("ALTER TABLE users ADD COLUMN password_hash TEXT");
+}
+if (!database.prepare("PRAGMA table_info(users)").all().some((column) => column.name === "must_change_password")) {
+  database.exec("ALTER TABLE users ADD COLUMN must_change_password INTEGER NOT NULL DEFAULT 0");
+}
+database.exec("CREATE UNIQUE INDEX IF NOT EXISTS idx_users_email_nocase ON users (email COLLATE NOCASE)");
+
+// Local-development bootstrap: the seeded administrator gets a known initial password that must be changed at first sign-in.
+if (String(process.env.AUTH_MODE || "").toLowerCase() === "development") {
+  const { hashPassword } = require("./auth/password");
+  const initialPassword = process.env.DEFAULT_ADMIN_PASSWORD || "ChangeMe-Song-2026!";
+  database.prepare("UPDATE users SET password_hash = ? WHERE id = 'user-dcfran' AND password_hash IS NULL").run(hashPassword(initialPassword));
+  database.prepare("UPDATE users SET must_change_password = 0 WHERE id = 'user-dcfran'").run();
 }
 
 const { validateAnnouncementPage } = require('./content/announcement-schema');
@@ -356,7 +375,7 @@ function updateJourneyItem(id, updates) {
 }
 
 function getPrincipalBySubject(subject, provider = 'development') {
-  const rows = database.prepare(`SELECT u.id, u.email, u.display_name, u.is_active, 'development' AS provider, u.id AS subject,
+  const rows = database.prepare(`SELECT u.id, u.email, u.display_name, u.is_active, u.must_change_password, 'development' AS provider, u.id AS subject,
     r.role_key, p.permission_key FROM users u
     LEFT JOIN rbac_user_roles ur ON ur.user_id = u.id
     LEFT JOIN rbac_roles r ON r.id = ur.role_id
@@ -364,7 +383,7 @@ function getPrincipalBySubject(subject, provider = 'development') {
     LEFT JOIN rbac_permissions p ON p.id = rp.permission_id
     WHERE ? = 'development' AND u.id = ?`).all(provider, subject);
   if (!rows.length) return null;
-  return { provider: rows[0].provider, issuer: rows[0].provider === 'development' ? 'local.song-site' : 'entra', subject: rows[0].subject, userId: rows[0].id, displayName: rows[0].display_name, email: rows[0].email, roles: [...new Set(rows.map(row => row.role_key).filter(Boolean))], role: rows.find(row => row.role_key)?.role_key || null, permissions: [...new Set(rows.map(row => row.permission_key).filter(Boolean))], isActive: Boolean(rows[0].is_active) };
+  return { provider: rows[0].provider, issuer: rows[0].provider === 'development' ? 'local.song-site' : 'entra', subject: rows[0].subject, userId: rows[0].id, displayName: rows[0].display_name, email: rows[0].email, roles: [...new Set(rows.map(row => row.role_key).filter(Boolean))], role: rows.find(row => row.role_key)?.role_key || null, permissions: [...new Set(rows.map(row => row.permission_key).filter(Boolean))], isActive: Boolean(rows[0].is_active), mustChangePassword: Boolean(rows[0].must_change_password) };
 }
 
 function listRbacUsers() {
@@ -398,6 +417,21 @@ function summarizeTasks(table) {
   return { total: rows.length, completed: counts.Completed, inProgress: counts['In Progress'], pending: counts.Pending, notStarted: counts['Not Started'], progress: rows.length ? Math.round((score / rows.length) * 100) : 0 };
 }
 
+function dashboardInsights(principal) {
+  const upNext = table => database.prepare(`SELECT id, title, status, end_date AS endDate FROM ${table} WHERE status <> 'Completed' ORDER BY CASE status WHEN 'In Progress' THEN 0 WHEN 'Pending' THEN 1 ELSE 2 END, CASE WHEN end_date = '' THEN 1 ELSE 0 END, end_date, id LIMIT 5`).all();
+  const recentCompletions = database.prepare(`SELECT kind, title, completed_at AS completedAt FROM (
+    SELECT 'Journey' AS kind, title, completed_at FROM tasks WHERE completed_at <> ''
+    UNION ALL SELECT 'Training', title, completed_at FROM training_tasks WHERE completed_at <> '') ORDER BY completed_at DESC LIMIT 6`).all();
+  const insights = { upNext: { journey: upNext('tasks'), training: upNext('training_tasks') }, recentCompletions };
+  if (principal?.permissions?.includes('rbac:users:read')) {
+    insights.roleBreakdown = database.prepare(`SELECT r.display_name AS role, COUNT(ur.user_id) AS users FROM rbac_roles r LEFT JOIN rbac_user_roles ur ON ur.role_id = r.id GROUP BY r.id ORDER BY users DESC, r.display_name`).all().map(row => ({ role: row.role, users: Number(row.users) }));
+    insights.accountStatus = database.prepare('SELECT SUM(is_active) AS active, SUM(1 - is_active) AS inactive FROM users').get();
+    insights.accountStatus = { active: Number(insights.accountStatus.active || 0), inactive: Number(insights.accountStatus.inactive || 0) };
+    insights.recentActivity = database.prepare('SELECT action, actor_subject AS actor, target_user_id AS target, created_at AS at FROM authorization_audit_events ORDER BY id DESC LIMIT 6').all();
+  }
+  return insights;
+}
+
 function getDashboardSummary(principal) {
   const journey = summarizeTasks('tasks');
   const training = summarizeTasks('training_tasks');
@@ -410,7 +444,7 @@ function getDashboardSummary(principal) {
     cards.push({ key: 'users', label: 'Users', value: database.prepare('SELECT COUNT(*) AS count FROM users').get().count, detail: 'Identities visible to your role' });
     cards.push({ key: 'roles', label: 'Roles', value: database.prepare('SELECT COUNT(*) AS count FROM rbac_roles').get().count, detail: 'Defined role assignments' });
   }
-  return { identity: principal ? { displayName: principal.displayName, email: principal.email, role: principal.role, mode: principal.provider } : null, cards, charts: [
+  return { identity: principal ? { displayName: principal.displayName, email: principal.email, role: principal.role, mode: principal.provider } : null, cards, ...dashboardInsights(principal), charts: [
     { key: 'journey-status', title: 'Journey task status', segments: [{ label: 'Completed', value: journey.completed }, { label: 'In Progress', value: journey.inProgress }, { label: 'Pending', value: journey.pending }, { label: 'Not Started', value: journey.notStarted }] },
     { key: 'training-status', title: 'Training task status', segments: [{ label: 'Completed', value: training.completed }, { label: 'In Progress', value: training.inProgress }, { label: 'Pending', value: training.pending }, { label: 'Not Started', value: training.notStarted }] },
   ] };
@@ -434,7 +468,37 @@ function assignRbacRoles(userId, roleKeys, actor) {
   return getPrincipalBySubject(user.subject, user.provider);
 }
 
+function getLoginCredentialByEmail(email) {
+  const row = database.prepare('SELECT id, password_hash AS passwordHash, is_active AS isActive FROM users WHERE email = ? COLLATE NOCASE').get(String(email));
+  return row ? { id: row.id, passwordHash: row.passwordHash, isActive: Boolean(row.isActive) } : null;
+}
+
+function setUserPasswordHash(userId, passwordHash, actor) {
+  const result = database.prepare('UPDATE users SET password_hash = ?, must_change_password = 0, updated_at = ? WHERE id = ?').run(passwordHash, new Date().toISOString(), userId);
+  if (!result.changes) return false;
+  if (actor) database.prepare('INSERT INTO authorization_audit_events (actor_subject, actor_provider, action, target_user_id, metadata) VALUES (?, ?, ?, ?, ?)').run(actor.subject, actor.provider, 'password_set', userId, '{}');
+  return true;
+}
+
+function createLocalUser({ email, displayName, passwordHash, roles }, actor) {
+  const available = roles.length ? database.prepare(`SELECT role_key FROM rbac_roles WHERE role_key IN (${roles.map(() => '?').join(',')})`).all(...roles).map(row => row.role_key) : [];
+  if (available.length !== roles.length) return null;
+  const id = `user-${require('node:crypto').randomUUID()}`;
+  database.exec('BEGIN');
+  try {
+    database.prepare('INSERT INTO users (id, external_id, email, display_name, role, password_hash) VALUES (?, ?, ?, ?, ?, ?)').run(id, id, email, displayName, roles[0] || 'user', passwordHash);
+    const insert = database.prepare('INSERT INTO rbac_user_roles (user_id, role_id, assigned_by) SELECT ?, id, ? FROM rbac_roles WHERE role_key = ?');
+    for (const roleKey of roles) insert.run(id, actor.subject, roleKey);
+    database.prepare('INSERT INTO authorization_audit_events (actor_subject, actor_provider, action, target_user_id, metadata) VALUES (?, ?, ?, ?, ?)').run(actor.subject, actor.provider, 'user_created', id, JSON.stringify({ roles }));
+    database.exec('COMMIT');
+  } catch (error) { database.exec('ROLLBACK'); throw error; }
+  return listRbacUsers().find(candidate => candidate.id === id);
+}
+
 module.exports = {
+  getLoginCredentialByEmail,
+  setUserPasswordHash,
+  createLocalUser,
   createTask,
   getTasks,
   getProgress,

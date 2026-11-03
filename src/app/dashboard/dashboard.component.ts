@@ -1,7 +1,7 @@
 import { CommonModule } from '@angular/common';
 import { Component, OnInit, inject, signal } from '@angular/core';
 import { RouterModule } from '@angular/router';
-import { DashboardService, DashboardSummary } from './dashboard.service';
+import { DashboardService, DashboardSummary, DashboardTask } from './dashboard.service';
 import { SessionService } from '../auth/session.service';
 
 @Component({
@@ -17,25 +17,9 @@ export class DashboardComponent implements OnInit {
   readonly session = this.sessionService.session;
   readonly summary = signal<DashboardSummary | null>(null);
   readonly error = signal('');
-  readonly collapsed = signal(false);
-
-  readonly navItems = [
-    { label: 'Dashboard', glyph: '⌂', route: '/dashboard' },
-    { label: 'User Management', glyph: '♙', route: '/admin/users', adminOnly: true },
-    { label: 'Resources', glyph: '▤', route: '/other-links' },
-    { label: 'Announcements', glyph: '◈', route: '/announcement' },
-    { label: 'Settings', glyph: '⚙', route: '/settings' },
-  ];
 
   ngOnInit(): void {
-    this.collapsed.set(localStorage.getItem('song-site.dashboard.sidebar') === 'collapsed');
-    void this.sessionService.refresh().catch(() => undefined);
     this.loadSummary();
-  }
-
-  toggleSidebar(): void {
-    this.collapsed.update(value => !value);
-    localStorage.setItem('song-site.dashboard.sidebar', this.collapsed() ? 'collapsed' : 'expanded');
   }
 
   isVisible(item: { adminOnly?: boolean }): boolean {
@@ -45,6 +29,36 @@ export class DashboardComponent implements OnInit {
   segmentWidth(value: number, segments: Array<{ value: number }>): string {
     const total = segments.reduce((sum, segment) => sum + segment.value, 0);
     return `${total ? Math.round((value / total) * 100) : 0}%`;
+  }
+
+  // Progress ring: percentage of the named card ("journey-progress" / "training-progress")
+  percent(key: string): number {
+    const card = this.summary()?.cards.find(item => item.key === key);
+    return card ? parseInt(String(card.value), 10) || 0 : 0;
+  }
+
+  ringStyle(key: string): string {
+    return `conic-gradient(var(--purple) ${this.percent(key) * 3.6}deg, #e8e0f0 0)`;
+  }
+
+  roleShare(users: number): string {
+    const max = Math.max(1, ...(this.summary()?.roleBreakdown || []).map(item => item.users));
+    return `${Math.round((users / max) * 100)}%`;
+  }
+
+  actionLabel(action: string): string {
+    return action.replace(/_/g, ' ').replace(/^\w/, char => char.toUpperCase());
+  }
+
+  tracks(data: DashboardSummary): Array<{ key: string; title: string; tasks: DashboardTask[] }> {
+    return [
+      { key: 'journey-progress', title: 'Journey', tasks: data.upNext?.journey || [] },
+      { key: 'training-progress', title: 'Training', tasks: data.upNext?.training || [] },
+    ];
+  }
+
+  detail(key: string): string {
+    return this.summary()?.cards.find(item => item.key === key)?.detail || '';
   }
 
   private loadSummary(): void {

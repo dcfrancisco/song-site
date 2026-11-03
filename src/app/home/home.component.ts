@@ -2,7 +2,6 @@ import { Component, OnDestroy, OnInit, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
 import { HttpClientModule } from '@angular/common/http';
-import { Router } from '@angular/router';
 import { Navbar } from '../navbar/navbar';
 import { Footer } from '../footer/footer';
 import { AuthService } from '../auth/auth.service';
@@ -27,15 +26,10 @@ export class HomeComponent implements OnInit, OnDestroy {
   constructor(
     private homeService: HomeService,
     private authService: AuthService,
-    private router: Router,
   ) {}
 
   ngOnInit(): void {
-    void this.authService.initialize().then(() => {
-      if (this.authService.isAuthenticated()) {
-        void this.router.navigateByUrl('/dashboard');
-      }
-    });
+    void this.authService.initialize();
 
     this.homeService.getSpotlight().subscribe((data) => {
       this.spotlight.set(data);

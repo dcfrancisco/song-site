@@ -1,0 +1,27 @@
+<div class="dashboard-shell" [class.sidebar-collapsed]="collapsed()">
+  <aside class="dashboard-sidebar" aria-label="Dashboard tools">
+    <a class="sidebar-brand" routerLink="/home" aria-label="Open Song Bench home">
+      <span class="brand-mark">&gt;</span>
+      <span class="brand-name">Song Bench</span>
+    </a>
+    <button class="collapse-button" type="button" (click)="toggleSidebar()" [attr.aria-expanded]="!collapsed()" aria-label="Toggle dashboard sidebar">
+      <span aria-hidden="true">{{ collapsed() ? '›' : '‹' }}</span><span class="collapse-label">Collapse</span>
+    </button>
+    <nav class="sidebar-nav">
+      @for (item of navItems; track item.route) {
+        @if (isVisible(item)) {
+          <a class="sidebar-link" [routerLink]="item.route" routerLinkActive="active" [routerLinkActiveOptions]="{ exact: item.exact === true }" [attr.title]="collapsed() ? item.label : null">
+            <span class="sidebar-glyph" aria-hidden="true">{{ item.glyph }}</span><span class="sidebar-label">{{ item.label }}</span>
+          </a>
+        }
+      }
+    </nav>
+    @if (session().identity) {
+      <div class="sidebar-footer"><span class="sidebar-glyph" aria-hidden="true">●</span><span class="sidebar-label">{{ session().identity?.displayName }}</span></div>
+    }
+  </aside>
+
+  <div class="dashboard-content">
+    <router-outlet />
+  </div>
+</div>

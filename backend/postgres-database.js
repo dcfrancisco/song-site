@@ -239,6 +239,27 @@ async function summarizeTasks(table) {
   return { total, completed: counts.Completed, inProgress: counts['In Progress'], pending: counts.Pending, notStarted: counts['Not Started'], progress: total ? Math.round((score / total) * 100) : 0 };
 }
 
+async function dashboardInsights(principal) {
+  const pool = getPostgresPool();
+  const upNext = async type => (await pool.query(`SELECT id, title, status, to_char(end_date, 'YYYY-MM-DD') AS "endDate" FROM tasks WHERE task_type=$1 AND is_active=TRUE AND status <> 'Completed' ORDER BY CASE status WHEN 'In Progress' THEN 0 WHEN 'Pending' THEN 1 ELSE 2 END, end_date NULLS LAST, id LIMIT 5`, [type])).rows;
+  const [journey, training, completions] = await Promise.all([
+    upNext('journey'), upNext('training'),
+    pool.query(`SELECT CASE task_type WHEN 'journey' THEN 'Journey' ELSE 'Training' END AS kind, title, completed_at AS "completedAt" FROM tasks WHERE is_active=TRUE AND completed_at IS NOT NULL ORDER BY completed_at DESC LIMIT 6`),
+  ]);
+  const insights = { upNext: { journey, training }, recentCompletions: completions.rows };
+  if (principal?.permissions?.includes('rbac:users:read')) {
+    const [roles, status, activity] = await Promise.all([
+      pool.query('SELECT r.display_name AS role, COUNT(ur.user_id)::integer AS users FROM rbac_roles r LEFT JOIN rbac_user_roles ur ON ur.role_id = r.id GROUP BY r.id ORDER BY users DESC, r.display_name'),
+      pool.query('SELECT COUNT(*) FILTER (WHERE is_active)::integer AS active, COUNT(*) FILTER (WHERE NOT is_active)::integer AS inactive FROM users'),
+      pool.query('SELECT action, actor_subject AS actor, target_user_id AS target, created_at AS at FROM authorization_audit_events ORDER BY id DESC LIMIT 6'),
+    ]);
+    insights.roleBreakdown = roles.rows;
+    insights.accountStatus = status.rows[0];
+    insights.recentActivity = activity.rows;
+  }
+  return insights;
+}
+
 async function getDashboardSummary(principal) {
   const [journey, training, announcements] = await Promise.all([
     summarizeTasks('tasks'),
@@ -255,7 +276,7 @@ async function getDashboardSummary(principal) {
     cards.push({ key: 'users', label: 'Users', value: counts.rows[0].users, detail: 'Identities visible to your role' });
     cards.push({ key: 'roles', label: 'Roles', value: counts.rows[0].roles, detail: 'Defined role assignments' });
   }
-  return { identity: principal ? { displayName: principal.displayName, email: principal.email, role: principal.role, mode: principal.provider } : null, cards, charts: [
+  return { identity: principal ? { displayName: principal.displayName, email: principal.email, role: principal.role, mode: principal.provider } : null, cards, ...(await dashboardInsights(principal)), charts: [
     { key: 'journey-status', title: 'Journey task status', segments: [{ label: 'Completed', value: journey.completed }, { label: 'In Progress', value: journey.inProgress }, { label: 'Pending', value: journey.pending }, { label: 'Not Started', value: journey.notStarted }] },
     { key: 'training-status', title: 'Training task status', segments: [{ label: 'Completed', value: training.completed }, { label: 'In Progress', value: training.inProgress }, { label: 'Pending', value: training.pending }, { label: 'Not Started', value: training.notStarted }] },
   ] };

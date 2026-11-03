@@ -78,6 +78,6 @@ describe('IndexComponent', () => {
     expect(navigate).not.toHaveBeenCalled();
 
     (fixture.nativeElement.querySelector('.continue-action') as HTMLButtonElement).click();
-    expect(navigate).toHaveBeenCalledWith('/dashboard');
+    expect(navigate).toHaveBeenCalledWith('/home');
   });
 });

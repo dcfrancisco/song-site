@@ -32,6 +32,24 @@ paths:
       operationId: endDevelopmentSession
       security: []
       responses: { '204': { description: Local session ended } }
+  /api/v1/auth/login:
+    post:
+      operationId: loginWithPassword
+      summary: Sign in with a local email and password (no SSO)
+      security: []
+      requestBody:
+        required: true
+        content: { application/json: { schema: { type: object, required: [email, password], properties: { email: { type: string, maxLength: 255 }, password: { type: string, maxLength: 128 } } } } }
+      responses: { '200': { description: Session created, content: { application/json: { schema: { $ref: '#/components/schemas/SessionSummary' } } } }, '401': { description: Invalid email or password }, '404': { $ref: '#/components/responses/NotFound' }, '429': { description: Too many failed attempts } }
+  /api/v1/auth/change-password:
+    post:
+      operationId: changePassword
+      summary: Change the signed-in user's password
+      security: [{ developmentSession: [] }]
+      requestBody:
+        required: true
+        content: { application/json: { schema: { type: object, required: [currentPassword, newPassword], properties: { currentPassword: { type: string, maxLength: 128 }, newPassword: { type: string, minLength: 12, maxLength: 128 } } } } }
+      responses: { '204': { description: Password changed }, '400': { description: Invalid new password }, '403': { $ref: '#/components/responses/Forbidden' } }
   /api/v1/dashboard/summary:
     get:
       operationId: getDashboardSummary
@@ -40,6 +58,14 @@ paths:
         '200': { description: Summary filtered by the effective principal, content: { application/json: { schema: { $ref: '#/components/schemas/DashboardSummary' } } } }
         '401': { $ref: '#/components/responses/Unauthorized' }
   /api/v1/rbac/users:
+    post:
+      operationId: createLocalUser
+      summary: Create a local user who signs in with a password
+      security: [{ developmentSession: [] }]
+      requestBody:
+        required: true
+        content: { application/json: { schema: { type: object, required: [email, displayName, password], properties: { email: { type: string, maxLength: 255 }, displayName: { type: string, maxLength: 255 }, password: { type: string, minLength: 12, maxLength: 128 }, roles: { type: array, items: { type: string } } } } } }
+      responses: { '201': { description: User created, content: { application/json: { schema: { $ref: '#/components/schemas/RbacUser' } } } }, '400': { description: Invalid request }, '403': { $ref: '#/components/responses/Forbidden' }, '409': { description: Email already in use } }
     get:
       operationId: listRbacUsers
       summary: List users and assigned roles
@@ -537,6 +563,23 @@ components:
         identity: { nullable: true, type: object, properties: { displayName: { type: string }, email: { type: string }, role: { nullable: true, type: string }, mode: { type: string } } }
         cards: { type: array, items: { type: object, required: [key, label, value, detail], properties: { key: { type: string }, label: { type: string }, value: { oneOf: [{ type: integer }, { type: string }] }, detail: { type: string } } } }
         charts: { type: array, items: { type: object, required: [key, title, segments], properties: { key: { type: string }, title: { type: string }, segments: { type: array, items: { type: object, required: [label, value], properties: { label: { type: string }, value: { type: integer } } } } } } }
+        upNext:
+          type: object
+          description: Next open Journey and Training tasks, in-progress first
+          properties:
+            journey: { type: array, items: { $ref: '#/components/schemas/DashboardTask' } }
+            training: { type: array, items: { $ref: '#/components/schemas/DashboardTask' } }
+        recentCompletions: { type: array, items: { type: object, properties: { kind: { type: string, enum: [Journey, Training] }, title: { type: string }, completedAt: { type: string } } } }
+        roleBreakdown: { type: array, description: Only with rbac:users:read, items: { type: object, properties: { role: { type: string }, users: { type: integer } } } }
+        accountStatus: { type: object, description: Only with rbac:users:read, properties: { active: { type: integer }, inactive: { type: integer } } }
+        recentActivity: { type: array, description: Only with rbac:users:read, items: { type: object, properties: { action: { type: string }, actor: { type: string }, target: { type: string, nullable: true }, at: { type: string } } } }
+    DashboardTask:
+      type: object
+      properties:
+        id: { type: integer }
+        title: { type: string }
+        status: { type: string }
+        endDate: { type: string }
     UserProfileUpdate:
       type: object
       minProperties: 1

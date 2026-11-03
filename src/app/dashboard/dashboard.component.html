@@ -1,57 +1,66 @@
-<div class="dashboard-shell" [class.sidebar-collapsed]="collapsed()">
-  <aside class="dashboard-sidebar" aria-label="Dashboard tools">
-    <a class="sidebar-brand" routerLink="/home" aria-label="Open Song Bench home">
-      <span class="brand-mark">&gt;</span>
-      <span class="brand-name">Song Bench</span>
-    </a>
-    <button class="collapse-button" type="button" (click)="toggleSidebar()" [attr.aria-expanded]="!collapsed()" aria-label="Toggle dashboard sidebar">
-      <span aria-hidden="true">{{ collapsed() ? '›' : '‹' }}</span><span class="collapse-label">Collapse</span>
-    </button>
-    <nav class="sidebar-nav">
-      @for (item of navItems; track item.route) {
-        @if (isVisible(item)) {
-          <a class="sidebar-link" [routerLink]="item.route" routerLinkActive="active" [routerLinkActiveOptions]="{ exact: true }" [attr.title]="collapsed() ? item.label : null">
-            <span class="sidebar-glyph" aria-hidden="true">{{ item.glyph }}</span><span class="sidebar-label">{{ item.label }}</span>
-          </a>
-        }
-      }
-    </nav>
-    @if (session().identity) {
-      <div class="sidebar-footer"><span class="sidebar-glyph" aria-hidden="true">●</span><span class="sidebar-label">{{ session().identity?.displayName }}</span></div>
-    }
-  </aside>
-
+<div class="dashboard-overview">
   <main class="dashboard-main">
     <header class="dashboard-header">
-      <div><p class="eyebrow">Management hub</p><h1>Dashboard</h1></div>
-      @if (session().mode === 'development' && session().identity) {
-        <div class="mode-chip dev">Development Mode</div>
-      }
+      <div>
+        <p class="eyebrow">{{ session().identity?.role || 'Overview' }}</p>
+        <h1>Welcome back{{ session().identity?.displayName ? ', ' + session().identity?.displayName : '' }}</h1>
+      </div>
+      <div class="header-actions">
+        @if (session().mode === 'development' && session().identity) { <span class="mode-chip dev">Development Mode</span> }
+        <a class="btn" routerLink="/home">Open Home</a>
+      </div>
     </header>
 
     @if (error()) { <div class="notice error" role="alert">{{ error() }}</div> }
-    <section class="welcome-panel">
-      <p class="eyebrow">{{ session().identity?.role || 'Authorized workspace' }}</p>
-      <h2>Welcome{{ session().identity?.displayName ? ', ' + session().identity?.displayName : '' }}.</h2>
-      <p>Use the tools in the sidebar to manage your Song Bench workspace.</p>
-    </section>
 
-    <section class="stats-grid" aria-label="Dashboard statistics">
-      @for (card of summary()?.cards || []; track card.key) {
-        <article class="stat-card"><span class="stat-glyph" aria-hidden="true">{{ card.key === 'users' ? '♙' : card.key === 'announcements' ? '◈' : card.key.includes('training') ? '▤' : '◌' }}</span><p>{{ card.label }}</p><strong>{{ card.value }}</strong><small>{{ card.detail }}</small></article>
+    @if (summary(); as data) {
+      <section class="progress-grid" aria-label="Progress">
+        @for (track of tracks(data); track track.key) {
+          <article class="panel">
+            <div class="ring-row">
+              <div class="ring" [style.background]="ringStyle(track.key)" role="img" [attr.aria-label]="track.title + ' ' + percent(track.key) + ' percent complete'"><span>{{ percent(track.key) }}%</span></div>
+              <div><h2>{{ track.title }} progress</h2><p class="muted">{{ detail(track.key) }}</p></div>
+            </div>
+            <h3>Up next</h3>
+            @if (track.tasks.length) {
+              <ul class="list">
+                @for (task of track.tasks; track task.id) {
+                  <li><span>{{ task.title }}</span><span class="pill" [class.active]="task.status === 'In Progress'">{{ task.status }}</span>@if (task.endDate) { <small>{{ task.endDate }}</small> }</li>
+                }
+              </ul>
+            } @else { <p class="empty">All caught up. Nothing open.</p> }
+          </article>
+        }
+      </section>
+
+      <section class="two-col">
+        <article class="panel">
+          <h2>Recently completed</h2>
+          @if (data.recentCompletions?.length) {
+            <ul class="list">@for (item of data.recentCompletions; track item.title) { <li><span>{{ item.title }}</span><span class="pill">{{ item.kind }}</span><small>{{ item.completedAt | date: 'MMM d, y' }}</small></li> }</ul>
+          } @else { <p class="empty">No completed tasks yet.</p> }
+        </article>
+      </section>
+
+      @if (data.roleBreakdown) {
+        <section class="two-col" aria-label="Administration">
+          <article class="panel">
+            <div class="panel-head"><h2>Users by role</h2><a routerLink="/dashboard/users">Manage users</a></div>
+            @for (item of data.roleBreakdown; track item.role) {
+              <div class="bar-row"><div class="bar-label"><span>{{ item.role }}</span><strong>{{ item.users }}</strong></div><div class="bar-track"><span [style.width]="roleShare(item.users)"></span></div></div>
+            }
+            @if (data.accountStatus) { <p class="muted foot">{{ data.accountStatus.active }} active · {{ data.accountStatus.inactive }} inactive accounts</p> }
+          </article>
+          <article class="panel">
+            <h2>Recent access activity</h2>
+            @if (data.recentActivity?.length) {
+              <ul class="list">@for (event of data.recentActivity; track $index) { <li><span>{{ actionLabel(event.action) }}<small class="block">{{ event.actor }}{{ event.target ? ' → ' + event.target : '' }}</small></span><small>{{ event.at | date: 'MMM d, HH:mm' }}</small></li> }</ul>
+            } @else { <p class="empty">No access changes recorded.</p> }
+          </article>
+        </section>
       }
-    </section>
-
-    <section class="charts-grid" aria-label="Dashboard graphs">
-      @for (chart of summary()?.charts || []; track chart.key) {
-        <article class="chart-card"><h2>{{ chart.title }}</h2><div class="bar-chart">@for (segment of chart.segments; track segment.label) { <div class="bar-row"><div class="bar-label"><span>{{ segment.label }}</span><strong>{{ segment.value }}</strong></div><div class="bar-track"><span [style.width]="segmentWidth(segment.value, chart.segments)"></span></div></div> }</div></article>
-      }
-    </section>
-
-    <section class="tool-grid">
-      <a class="tool-card" routerLink="/admin/users" *ngIf="isVisible({adminOnly: true})"><span class="tool-glyph" aria-hidden="true">♙</span><span><strong>User Management</strong><small>Review users and assigned roles.</small></span></a>
-      <a class="tool-card" routerLink="/home"><span class="tool-glyph" aria-hidden="true">⌂</span><span><strong>Open Home</strong><small>Visit the original Song Bench experience.</small></span></a>
-      <a class="tool-card" routerLink="/settings"><span class="tool-glyph" aria-hidden="true">⚙</span><span><strong>Settings</strong><small>Review your current access mode.</small></span></a>
-    </section>
+    } @else if (!error()) {
+      <p class="muted">Loading your dashboard…</p>
+    }
   </main>
 </div>

@@ -12,7 +12,7 @@
       </div>
     } @else if (isAuthenticated()) {
       <div class="status-banner success">
-        Signed in as <strong>{{ displayName() }}</strong>. Redirecting to the dashboard.
+        Signed in as <strong>{{ displayName() }}</strong>. Redirecting to the home page.
       </div>
     } @else if (error()) {
       <div class="status-banner error">{{ error() }}</div>
@@ -21,7 +21,7 @@
     <div class="actions">
       @if (session().mode === 'development' && session().authenticated) {
         <button class="secondary-action continue-action" type="button" (click)="goToDashboard()">
-          Continue to dashboard
+          Continue to home
         </button>
       }
       <button class="primary-action" type="button" [disabled]="isBusy()" (click)="signIn()">
@@ -35,10 +35,18 @@
 
     <section class="email-sign-in" aria-labelledby="email-sign-in-title">
       <h2 id="email-sign-in-title">Sign in with email</h2>
-      <p>Email one-time-code sign-in is unavailable until email delivery is configured.</p>
-      <label for="email-address">Email address</label>
-      <input id="email-address" type="email" autocomplete="email" placeholder="you@example.com" disabled>
-      <button class="secondary-action" type="button" disabled>Email sign-in unavailable</button>
+      @if (emailError()) {
+        <div class="status-banner error" role="alert">{{ emailError() }}</div>
+      }
+      <form (submit)="$event.preventDefault(); signInWithPassword(emailInput.value, passwordInput.value)">
+        <label for="email-address">Email address</label>
+        <input #emailInput id="email-address" type="email" autocomplete="username" placeholder="you@example.com" required>
+        <label for="password">Password</label>
+        <input #passwordInput id="password" type="password" autocomplete="current-password" required>
+        <button class="secondary-action" type="submit" [disabled]="emailBusy()">
+          {{ emailBusy() ? 'Signing in...' : 'Sign in' }}
+        </button>
+      </form>
     </section>
   </section>
 </main>

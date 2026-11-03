@@ -5,27 +5,43 @@ const protectedRoutes: Routes = [
   {
     path: 'dashboard',
     loadComponent: () =>
-      import('./dashboard/dashboard.component').then(m => m.DashboardComponent)
+      import('./dashboard/dashboard-shell.component').then(m => m.DashboardShellComponent),
+    children: [
+      {
+        path: '',
+        pathMatch: 'full',
+        loadComponent: () =>
+          import('./dashboard/dashboard.component').then(m => m.DashboardComponent)
+      },
+      {
+        path: 'users',
+        loadComponent: () =>
+          import('./dashboard/admin-users.component').then(m => m.AdminUsersComponent)
+      },
+      {
+        path: 'roles',
+        loadComponent: () =>
+          import('./dashboard/admin-roles.component').then(m => m.AdminRolesComponent)
+      },
+      {
+        path: 'resources',
+        loadComponent: () =>
+          import('./other-links/other-links').then(m => m.OtherLinks)
+      },
+      {
+        path: 'settings',
+        loadComponent: () =>
+          import('./dashboard/settings.component').then(m => m.SettingsComponent)
+      },
+    ]
   },
+  { path: 'admin/users', redirectTo: 'dashboard/users', pathMatch: 'full' },
+  { path: 'admin/roles', redirectTo: 'dashboard/roles', pathMatch: 'full' },
+  { path: 'settings', redirectTo: 'dashboard/settings', pathMatch: 'full' },
   {
     path: 'home',
     loadComponent: () =>
       import('./home/home.component').then(m => m.HomeComponent)
-  },
-  {
-    path: 'admin/users',
-    loadComponent: () =>
-      import('./dashboard/admin-users.component').then(m => m.AdminUsersComponent)
-  },
-  {
-    path: 'admin/roles',
-    loadComponent: () =>
-      import('./dashboard/admin-roles.component').then(m => m.AdminRolesComponent)
-  },
-  {
-    path: 'settings',
-    loadComponent: () =>
-      import('./dashboard/settings.component').then(m => m.SettingsComponent)
   },
   {
     path: 'atcp-song',

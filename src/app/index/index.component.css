@@ -75,13 +75,26 @@ h1 {
   line-height: 1.6;
 }
 
+.email-sign-in form {
+  display: grid;
+  gap: 8px;
+  max-width: 420px;
+}
+
 .email-sign-in label {
+  display: block;
   color: rgba(255, 255, 255, 0.84);
   font-size: 0.9rem;
   font-weight: 600;
 }
 
+.email-sign-in label:not(:first-child) {
+  margin-top: 8px;
+}
+
 .email-sign-in input {
+  box-sizing: border-box;
+  width: 100%;
   min-height: 48px;
   padding: 0 14px;
   border: 1px solid rgba(161, 0, 255, 0.36);
@@ -89,6 +102,17 @@ h1 {
   background: rgba(255, 255, 255, 0.06);
   color: #fff;
   font: inherit;
+}
+
+.email-sign-in input:focus-visible {
+  outline: 2px solid #a100ff;
+  outline-offset: 2px;
+}
+
+.email-sign-in form .secondary-action {
+  width: 100%;
+  min-height: 48px;
+  margin-top: 14px;
 }
 
 .email-sign-in input:disabled {

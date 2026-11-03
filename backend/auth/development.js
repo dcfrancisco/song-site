@@ -127,6 +127,13 @@ function verifyDevelopmentSession(cookieValue, secret, sessions, now = Date.now(
   return session;
 }
 
+function createUserSession(subject, secret, now = Date.now()) {
+  const session = createDevelopmentSession('administrator', secret, now);
+  session.fixtureName = null;
+  session.principal = { ...session.principal, subject, role: null, permissions: [] };
+  return session;
+}
+
 function getFixtureNames() {
   return Object.keys(FIXTURES);
 }
@@ -148,6 +155,7 @@ module.exports = {
   SIGNED_OUT_SESSION_COOKIE_VALUE,
   SESSION_TTL_SECONDS,
   createDevelopmentSession,
+  createUserSession,
   getFixtureNames,
   getPublicFixture,
   parseCookieHeader,

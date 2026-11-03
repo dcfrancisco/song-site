@@ -9,6 +9,7 @@ const config = require("./config");
 const { checkPostgresConnection } = require("./postgres");
 const { createAuthService, serializeCookie } = require("./auth/middleware");
 const { COOKIE_NAME, SIGNED_OUT_SESSION_COOKIE_VALUE, parseCookieHeader } = require("./auth/development");
+const { hashPassword, validatePasswordStrength, verifyPassword } = require("./auth/password");
 const database = config.databaseDriver === "postgres"
   ? require("./postgres-database")
   : require("./database");
@@ -27,7 +28,7 @@ app.use(cors({
 app.use(express.json({ limit: "256kb" }));
 app.use(auth.attachPrincipal);
 app.use('/api', (req, res, next) => {
-  if (req.path === '/v1/session' || req.path === '/v1/dev/session') return next();
+  if (req.path === '/v1/session' || req.path === '/v1/dev/session' || req.path === '/v1/auth/login') return next();
   return auth.requireAuthenticated(req, res, next);
 });
 
@@ -118,6 +119,89 @@ app.post("/api/v1/dev/session", requireObjectBody, async (req, res, next) => {
     ...auth.sessionSummary({ principal: session.principal }),
     csrfToken: session.csrfToken,
   });
+});
+
+const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+const LOGIN_MAX_FAILURES = 5;
+const LOGIN_LOCK_MS = 15 * 60 * 1000;
+const loginFailures = new Map();
+
+function loginKey(req, email) {
+  return `${req.socket?.remoteAddress || ''}|${email}`;
+}
+
+function isLoginLocked(key) {
+  const entry = loginFailures.get(key);
+  if (!entry) return false;
+  if (Date.now() - entry.last > LOGIN_LOCK_MS) { loginFailures.delete(key); return false; }
+  return entry.count >= LOGIN_MAX_FAILURES;
+}
+
+function recordLoginFailure(key) {
+  const entry = loginFailures.get(key) || { count: 0, last: 0 };
+  loginFailures.set(key, { count: entry.count + 1, last: Date.now() });
+}
+
+app.post("/api/v1/auth/login", requireObjectBody, async (req, res, next) => {
+  try {
+    if (!config.auth.isDevelopmentAuth || typeof database.getLoginCredentialByEmail !== 'function') {
+      return res.status(404).json({ error: "Password sign-in is unavailable" });
+    }
+    const origin = req.get('origin');
+    if (origin && !config.auth.allowedOrigins.includes(origin)) return res.status(403).json({ error: "Origin is not allowed" });
+    const email = typeof req.body.email === 'string' ? req.body.email.trim().toLowerCase() : '';
+    const password = req.body.password;
+    if (!EMAIL_PATTERN.test(email) || email.length > 255 || typeof password !== 'string') {
+      return res.status(400).json({ error: "Email and password are required" });
+    }
+    const key = loginKey(req, email);
+    if (isLoginLocked(key)) return res.status(429).json({ error: "Too many failed attempts. Try again later." });
+    const credential = await database.getLoginCredentialByEmail(email);
+    const valid = verifyPassword(password, credential?.passwordHash);
+    const session = valid && credential.isActive ? await auth.createUserSessionById(credential.id) : null;
+    if (!session) {
+      recordLoginFailure(key);
+      return res.status(401).json({ error: "Invalid email or password" });
+    }
+    loginFailures.delete(key);
+    auth.revokeSession(req);
+    res.set("Set-Cookie", serializeCookie(COOKIE_NAME, session.cookieValue, 1800));
+    res.json({ ...auth.sessionSummary({ principal: session.principal }), csrfToken: session.csrfToken });
+  } catch (error) { next(error); }
+});
+
+app.post('/api/v1/auth/change-password', auth.requireCsrf, requireObjectBody, async (req, res, next) => {
+  try {
+    if (!req.principal || typeof database.getLoginCredentialByEmail !== 'function') return res.status(404).json({ error: 'Password change is unavailable' });
+    const { currentPassword, newPassword } = req.body;
+    const problem = validatePasswordStrength(newPassword);
+    if (problem || typeof currentPassword !== 'string') return res.status(400).json({ error: problem || 'Current password is required' });
+    if (newPassword === currentPassword) return res.status(400).json({ error: 'New password must differ from the current password' });
+    const credential = await database.getLoginCredentialByEmail(req.principal.email);
+    if (!credential || credential.id !== req.principal.userId || !verifyPassword(currentPassword, credential.passwordHash)) {
+      return res.status(403).json({ error: 'Current password is incorrect' });
+    }
+    await database.setUserPasswordHash(credential.id, hashPassword(newPassword), req.principal);
+    res.status(204).end();
+  } catch (error) { next(error); }
+});
+
+app.post('/api/v1/rbac/users', ...requireMutation('rbac:users:manage'), requireObjectBody, async (req, res, next) => {
+  try {
+    if (typeof database.createLocalUser !== 'function') return res.status(501).json({ error: 'User creation is not supported by this database driver' });
+    const { displayName, email, password, roles = [] } = req.body;
+    if (typeof displayName !== 'string' || displayName.trim().length < 1 || displayName.length > 255) return res.status(400).json({ error: 'displayName must be a non-empty string of 255 characters or fewer' });
+    if (typeof email !== 'string' || email.length > 255 || !EMAIL_PATTERN.test(email.trim())) return res.status(400).json({ error: 'email must be a valid email value' });
+    const passwordProblem = validatePasswordStrength(password);
+    if (passwordProblem) return res.status(400).json({ error: passwordProblem });
+    if (!Array.isArray(roles) || roles.length > 10 || roles.some(role => typeof role !== 'string' || role.length > 64)) return res.status(400).json({ error: 'roles must be an array of role names' });
+    const created = await database.createLocalUser({ email: email.trim().toLowerCase(), displayName: displayName.trim(), passwordHash: hashPassword(password), roles: [...new Set(roles)] }, req.principal);
+    if (created === null) return res.status(400).json({ error: 'One or more roles are invalid' });
+    res.status(201).json(created);
+  } catch (error) {
+    if (error.code === 'SQLITE_CONSTRAINT_UNIQUE' || error.code === 'SQLITE_CONSTRAINT' || error.errcode === 2067 || error.code === '23505') return res.status(409).json({ error: 'Email is already in use' });
+    next(error);
+  }
 });
 
 app.get('/api/v1/rbac/users', auth.requirePermission('rbac:users:read'), async (req, res, next) => {

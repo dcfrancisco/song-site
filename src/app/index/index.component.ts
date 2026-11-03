@@ -34,6 +34,24 @@ export class IndexComponent implements OnInit {
     void this.initializeAccess();
   }
 
+  readonly emailError = signal<string | null>(null);
+  readonly emailBusy = signal(false);
+
+  async signInWithPassword(email: string, password: string): Promise<void> {
+    this.emailError.set(null);
+    this.sessionError.set(null);
+    this.emailBusy.set(true);
+    try {
+      await this.sessionService.login(email.trim(), password);
+      this.goToDashboard();
+    } catch (error) {
+      const status = (error as { status?: number })?.status;
+      this.emailError.set(status === 429 ? 'Too many failed attempts. Try again later.' : status === 401 ? 'Invalid email or password.' : 'Sign-in failed. Please try again.');
+    } finally {
+      this.emailBusy.set(false);
+    }
+  }
+
   signIn(): void {
     this.sessionError.set(null);
     void this.authService.login();
@@ -60,7 +78,7 @@ export class IndexComponent implements OnInit {
     const destination =
       returnUrl?.startsWith('/') && !returnUrl.startsWith('//') && !returnUrl.startsWith('/signin')
         ? returnUrl
-        : '/dashboard';
+        : '/home';
     void this.router.navigateByUrl(destination);
   }
 }

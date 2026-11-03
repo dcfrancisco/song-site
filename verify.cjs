@@ -1,0 +1,2 @@
+const {chromium}=require('@playwright/test');(async()=>{const b=await chromium.launch({timeout:30000});const p=await b.newPage({viewport:{width:900,height:800}});
+await p.goto('http://localhost:4200/signin',{waitUntil:'domcontentloaded',timeout:30000});await p.waitForSelector('#email-address',{timeout:30000});await p.screenshot({path:'shot.png'});await b.close();console.log('ok')})().catch(e=>{console.log(e.message);process.exit(1)})

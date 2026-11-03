@@ -1,6 +1,7 @@
 const {
   COOKIE_NAME,
   createDevelopmentSession,
+  createUserSession,
   parseCookieHeader,
   verifyDevelopmentSession,
 } = require('./development');
@@ -80,6 +81,14 @@ function createAuthService(authConfig, identityStore) {
     return session;
   }
 
+  async function createUserSessionById(userId) {
+    const session = createUserSession(userId, authConfig.sessionSecret);
+    session.principal = await identityStore.getPrincipalBySubject(userId, 'development');
+    if (!session.principal || !session.principal.isActive) return null;
+    sessions.set(session.sessionId, session);
+    return session;
+  }
+
   async function createDefaultSession(req) {
     if (!authConfig.isDevelopmentAuth || !authConfig.defaultDevelopmentFixture || !isLoopbackRequest(req)) return null;
     return createSession(authConfig.defaultDevelopmentFixture);
@@ -93,6 +102,7 @@ function createAuthService(authConfig, identityStore) {
     return {
       mode: authConfig.authMode,
       authenticated: Boolean(req.principal),
+      ...(req.principal?.mustChangePassword ? { mustChangePassword: true } : {}),
       identity: req.principal
         ? {
             provider: req.principal.provider,
@@ -111,6 +121,7 @@ function createAuthService(authConfig, identityStore) {
   return {
     attachPrincipal,
     createSession,
+    createUserSessionById,
     createDefaultSession,
     getSessionFromRequest,
     isLoopbackRequest,

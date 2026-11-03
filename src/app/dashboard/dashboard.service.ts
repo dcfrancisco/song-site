@@ -17,7 +17,16 @@ export type DashboardSummary = {
   identity: { displayName: string; email: string; role: string | null; mode: string } | null;
   cards: Array<{ key: string; label: string; value: number | string; detail: string }>;
   charts: Array<{ key: string; title: string; segments: Array<{ label: string; value: number }> }>;
+  upNext?: { journey: DashboardTask[]; training: DashboardTask[] };
+  recentCompletions?: Array<{ kind: string; title: string; completedAt: string }>;
+  roleBreakdown?: Array<{ role: string; users: number }>;
+  accountStatus?: { active: number; inactive: number };
+  recentActivity?: Array<{ action: string; actor: string; target: string | null; at: string }>;
 };
+
+export type DashboardTask = { id: number; title: string; status: string; endDate: string };
+
+export type NewUser = { email: string; displayName: string; password: string; roles: string[] };
 
 @Injectable({ providedIn: 'root' })
 export class DashboardService {
@@ -41,6 +50,13 @@ export class DashboardService {
 
   replaceRoles(userId: string, roles: string[]): Promise<unknown> {
     return firstValueFrom(this.http.put(this.api(`/v1/rbac/users/${encodeURIComponent(userId)}/roles`), { roles }, {
+      withCredentials: true,
+      headers: { 'X-CSRF-Token': this.session.csrf },
+    }));
+  }
+
+  createUser(user: NewUser): Promise<RbacUser> {
+    return firstValueFrom(this.http.post<RbacUser>(this.api('/v1/rbac/users'), user, {
       withCredentials: true,
       headers: { 'X-CSRF-Token': this.session.csrf },
     }));
