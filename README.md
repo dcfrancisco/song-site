@@ -41,10 +41,25 @@ Set local values in `.env`, especially:
 ```env
 VITE_API_BASE_URL=http://localhost:5001/api
 VITE_AZURE_REDIRECT_URI=http://localhost:4200/
+AUTH_MODE=local
+SESSION_SECRET=replace-with-a-private-random-secret-at-least-32-characters
+ALLOWED_ORIGINS=http://localhost:4200,http://127.0.0.1:4200
+DEFAULT_ADMIN_EMAIL=dcfran@gmail.com
+DEFAULT_ADMIN_PASSWORD=ChangeMe-Song-2026!
 DB_DRIVER=sqlite
 ```
 
 Keep real identity values local.
+
+### Local email/password sign-in
+
+The local `.env.example` enables password sign-in against each developer's SQLite database. Generate a unique session secret for your `.env`:
+
+```powershell
+node -e "console.log(require('crypto').randomBytes(32).toString('base64url'))"
+```
+
+The local default login is `dcfran@gmail.com` with password `ChangeMe-Song-2026!`. On first startup, the backend applies `DEFAULT_ADMIN_PASSWORD` only when the configured administrator account has no password yet; it does not reset a password that has already been set. This shared default is for isolated local environments only—never use it in a deployed environment or on a shared database.
 
 ### Local authoring mode
 
