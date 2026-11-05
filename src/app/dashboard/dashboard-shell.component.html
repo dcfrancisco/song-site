@@ -1,6 +1,6 @@
 <div class="dashboard-shell" [class.sidebar-collapsed]="collapsed()">
   <aside class="dashboard-sidebar" aria-label="Dashboard tools">
-    <a class="sidebar-brand" routerLink="/dashboard" aria-label="Open Song Site dashboard">
+    <a class="sidebar-brand" routerLink="/home" aria-label="Open Song Bench home">
       <span class="brand-mark">&gt;</span>
       <span class="brand-name">Song Bench</span>
     </a>
@@ -8,19 +8,12 @@
       <span aria-hidden="true">{{ collapsed() ? '›' : '‹' }}</span><span class="collapse-label">Collapse</span>
     </button>
     <nav class="sidebar-nav">
-      @for (section of navSections; track section.label) {
-        <div class="sidebar-section" role="group" [attr.aria-label]="section.label">
-          @if (!collapsed()) {
-            <p class="sidebar-section-title">{{ section.label }}</p>
-          }
-          @for (item of section.items; track item.route) {
-            @if (isVisible(item)) {
-              <a class="sidebar-link" [routerLink]="item.route" routerLinkActive="active" [routerLinkActiveOptions]="{ exact: item.exact === true }" [attr.title]="item.label">
-                <span class="sidebar-glyph" aria-hidden="true">{{ item.glyph }}</span><span class="sidebar-label">{{ item.label }}</span>
-              </a>
-            }
-          }
-        </div>
+      @for (item of navItems; track item.route) {
+        @if (isVisible(item)) {
+          <a class="sidebar-link" [routerLink]="item.route" routerLinkActive="active" [routerLinkActiveOptions]="{ exact: item.exact === true }" [attr.title]="collapsed() ? item.label : null">
+            <span class="sidebar-glyph" aria-hidden="true">{{ item.glyph }}</span><span class="sidebar-label">{{ item.label }}</span>
+          </a>
+        }
       }
     </nav>
     @if (session().identity) {

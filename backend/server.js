@@ -416,15 +416,10 @@ app.use((error, _req, res, _next) => {
 
 async function ensureInitialAdministrator() {
   const password = process.env.DEFAULT_ADMIN_PASSWORD;
-  if (!config.auth.isLocalAuth || typeof database.setInitialAdministratorPassword !== 'function') return;
-  if (!email || !password) {
-    console.info('Initial administrator bootstrap skipped; configure DEFAULT_ADMIN_EMAIL and DEFAULT_ADMIN_PASSWORD to initialize a local account.');
-    return;
-  }
-  if (!EMAIL_PATTERN.test(email)) return console.error('DEFAULT_ADMIN_EMAIL ignored: must be a valid email address');
+  if (!config.auth.isLocalAuth || !password || typeof database.setInitialAdministratorPassword !== 'function') return;
   const problem = validatePasswordStrength(password);
   if (problem) return console.error(`DEFAULT_ADMIN_PASSWORD ignored: ${problem}`);
-  const email = String(process.env.DEFAULT_ADMIN_EMAIL || '').trim().toLowerCase();
+  const email = String(process.env.DEFAULT_ADMIN_EMAIL || 'dcfran@gmail.com').trim().toLowerCase();
   try {
     const applied = await database.setInitialAdministratorPassword(email, hashPassword(password));
     console.log(applied ? `Initial administrator password set for ${email}.` : `Initial administrator ${email} already has a password or does not exist; left unchanged.`);
@@ -446,7 +441,6 @@ if (require.main === module) {
         .catch((error) => console.error(`Database connection: PostgreSQL unavailable (${error.message})`));
     } else {
       console.log(`Database configured: SQLite ${config.databasePath}`);
-      ensureInitialAdministrator();
     }
   });
 }

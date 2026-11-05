@@ -7,15 +7,13 @@
 .collapse-button { width: 100%; display: flex; gap: 12px; align-items: center; border: 0; border-radius: 10px; background: transparent; color: rgba(255,255,255,.75); padding: 10px 12px; cursor: pointer; text-align: left; font: inherit; }
 .collapse-button:hover { background: rgba(255,255,255,.1); color: #fff; }
 .collapse-button span:first-child { font-size: 22px; width: 24px; text-align: center; }
-.sidebar-nav { display: grid; gap: 12px; margin-top: 14px; }
-.sidebar-section { display: grid; gap: 4px; }
-.sidebar-section-title { margin: 8px 12px 2px; color: rgba(255,255,255,.62); font-size: 11px; font-weight: 700; letter-spacing: .1em; text-transform: uppercase; white-space: nowrap; }
+.sidebar-nav { display: grid; gap: 4px; margin-top: 14px; }
 .sidebar-link { display: flex; gap: 14px; align-items: center; min-height: 46px; padding: 0 12px; border-radius: 10px; color: rgba(255,255,255,.82); text-decoration: none; white-space: nowrap; }
 .sidebar-link:hover { background: rgba(255,255,255,.12); color: #fff; }
 .sidebar-link.active { background: #fff; color: var(--purple); font-weight: 700; }
 .sidebar-glyph { width: 24px; flex: 0 0 24px; text-align: center; font-size: 20px; }
 .sidebar-footer { display: flex; gap: 14px; align-items: center; margin: auto 8px 0; padding-top: 18px; border-top: 1px solid rgba(255,255,255,.2); color: rgba(255,255,255,.85); white-space: nowrap; font-size: 13px; }
-.sidebar-collapsed .sidebar-label, .sidebar-collapsed .brand-name, .sidebar-collapsed .collapse-label, .sidebar-collapsed .sidebar-section-title { display: none; }
+.sidebar-collapsed .sidebar-label, .sidebar-collapsed .brand-name, .sidebar-collapsed .collapse-label { display: none; }
 .dashboard-content { flex: 1; min-width: 0; }
 /* Tools reused from the public site render their own header/footer; the dashboard provides the chrome instead. */
 .dashboard-content ::ng-deep app-navbar, .dashboard-content ::ng-deep app-footer { display: none; }

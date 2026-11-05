@@ -6,13 +6,30 @@
       Sign in to access the Song Site portal.
     </p>
 
-    @if (error()) {
+    @if (session().mode === 'development' && session().authenticated) {
+      <div class="status-banner success">
+        Local Development Mode is active for <strong>{{ session().identity?.displayName }}</strong>.
+      </div>
+    } @else if (isAuthenticated()) {
+      <div class="status-banner success">
+        Signed in as <strong>{{ displayName() }}</strong>. Redirecting to the home page.
+      </div>
+    } @else if (error()) {
       <div class="status-banner error">{{ error() }}</div>
     }
 
     <div class="actions">
+      @if (session().mode === 'development' && session().authenticated) {
+        <button class="secondary-action continue-action" type="button" (click)="goToDashboard()">
+          Continue to home
+        </button>
+      }
       <button class="primary-action" type="button" [disabled]="isBusy()" (click)="signIn()">
-        {{ isBusy() ? 'Signing in...' : 'Sign in with Microsoft SSO' }}
+        @if (isBusy()) {
+          Signing in...
+        } @else {
+          Sign in with Microsoft SSO
+        }
       </button>
     </div>
 
@@ -26,7 +43,7 @@
         <input #emailInput id="email-address" type="email" autocomplete="username" placeholder="you@example.com" required>
         <label for="password">Password</label>
         <input #passwordInput id="password" type="password" autocomplete="current-password" required>
-        <button class="primary-action" type="submit" [disabled]="emailBusy()">
+        <button class="secondary-action" type="submit" [disabled]="emailBusy()">
           {{ emailBusy() ? 'Signing in...' : 'Sign in' }}
         </button>
       </form>

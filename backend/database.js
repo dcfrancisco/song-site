@@ -42,6 +42,14 @@ if (!database.prepare("PRAGMA table_info(users)").all().some((column) => column.
 }
 database.exec("CREATE UNIQUE INDEX IF NOT EXISTS idx_users_email_nocase ON users (email COLLATE NOCASE)");
 
+// Local-development bootstrap: the seeded administrator gets a known initial password that must be changed at first sign-in.
+if (String(process.env.AUTH_MODE || "").toLowerCase() === "development") {
+  const { hashPassword } = require("./auth/password");
+  const initialPassword = process.env.DEFAULT_ADMIN_PASSWORD || "ChangeMe-Song-2026!";
+  database.prepare("UPDATE users SET password_hash = ? WHERE id = 'user-dcfran' AND password_hash IS NULL").run(hashPassword(initialPassword));
+  database.prepare("UPDATE users SET must_change_password = 0 WHERE id = 'user-dcfran'").run();
+}
+
 const { validateAnnouncementPage } = require('./content/announcement-schema');
 const { ContentConflictError, ContentValidationError } = require('./content/errors');
 
@@ -465,12 +473,6 @@ function getLoginCredentialByEmail(email) {
   return row ? { id: row.id, passwordHash: row.passwordHash, isActive: Boolean(row.isActive) } : null;
 }
 
-function setInitialAdministratorPassword(email, passwordHash) {
-  const result = database.prepare('UPDATE users SET password_hash = ?, updated_at = ? WHERE email = ? COLLATE NOCASE AND password_hash IS NULL')
-    .run(passwordHash, new Date().toISOString(), String(email).trim());
-  return result.changes > 0;
-}
-
 function setUserPasswordHash(userId, passwordHash, actor) {
   const result = database.prepare('UPDATE users SET password_hash = ?, must_change_password = 0, updated_at = ? WHERE id = ?').run(passwordHash, new Date().toISOString(), userId);
   if (!result.changes) return false;
@@ -495,7 +497,6 @@ function createLocalUser({ email, displayName, passwordHash, roles }, actor) {
 
 module.exports = {
   getLoginCredentialByEmail,
-  setInitialAdministratorPassword,
   setUserPasswordHash,
   createLocalUser,
   createTask,

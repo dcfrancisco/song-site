@@ -1,6 +1,6 @@
 # Azure Deployment Setup
 
-This runbook covers the shared Azure development preview and the additional preparation required for a production release. The preview deploys the repository's Angular frontend and Express API from the same commit; it is one application with separate frontend and API services, not a second frontend implementation.
+This runbook describes the preparation required for deploying Song Site to Azure from GitHub Actions. It is a setup and release guide; it does not create Azure resources or add deployment workflows.
 
 The target architecture is defined by [ADR-0031](../adr/0031-azure-github-deployment-pipeline.md). The related implementation work is tracked under `WP-032` and `WP-033`.
 
@@ -101,14 +101,20 @@ permissions:
 
 Do not use a long-lived Azure service-principal secret when OIDC federation is available.
 
-## Required GitHub repository configuration
+## Required GitHub environment values
 
-The `publish-azure-images.yml` workflow deploys to the single shared preview target using repository-level configuration. Do not create a separate `development` GitHub environment or duplicate the existing settings with `DEV_*` names.
+Names should be finalized with the deployment implementation, but the pipeline will need values equivalent to:
 
-- Variables: `AZURE_ACR_NAME`, `AZURE_ACR_LOGIN_SERVER`, `PGHOST`, `PGPORT`, `PGDATABASE`, and `PGSSL`.
-- Secrets: `AZURE_CLIENT_ID`, `AZURE_TENANT_ID`, `AZURE_SUBSCRIPTION_ID`, `PGUSER`, `PGPASSWORD`, `VITE_AZURE_REDIRECT_URI`, `VITE_ENTRA_CLIENT_ID`, and `VITE_ENTRA_TENANT_ID`.
-
-After Azure OIDC login, the workflow searches subscriptions visible to that identity and resolves the existing frontend by its approved preview hostname. It also resolves the API by its established name, requires both apps to share one resource group, and fails before migrations unless exactly one matching pair is found. Do not change these targets to production resources. The API Container App must use the preview database.
+- Azure subscription and tenant identifiers;
+- Azure client/application identifier for the federated deployment identity;
+- resource group and Container Apps environment names;
+- Container Registry name and login server;
+- frontend and backend image repository names;
+- staging or production API URL;
+- frontend Entra redirect URI, client ID, and tenant ID;
+- `PGHOST`, `PGPORT`, `PGDATABASE`, and `PGSSL` as protected GitHub environment variables;
+- `PGUSER` and `PGPASSWORD` as protected GitHub environment secrets, or future Azure-managed secret references;
+- migration and smoke-test configuration.
 
 Never commit values for `DATABASE_URL`, database passwords, client secrets, signing keys, or API keys.
 
@@ -171,7 +177,7 @@ Migration failures must block promotion. Do not make destructive schema changes 
 
 ## Current status
 
-The image-publishing workflow builds commit-tagged frontend and API images from the same repository commit, resolves the existing preview Container Apps, applies preview PostgreSQL migrations, and deploys both images to that shared target. Production promotion, production migration approval, post-deployment smoke tests, rollback evidence, and Entra API-token validation remain separate work.
+The image-publishing workflow now includes a protected PostgreSQL migration step in the `production` GitHub environment. Azure resources, Container Apps deployment/promotion, PostgreSQL production provisioning, and Entra API-token validation remain unimplemented. Configure the `PG*` variables and secrets as protected `production` environment values before enabling the workflow on `main`.
 
 ## Email/password sign-in without SSO (`AUTH_MODE=local`)
 
@@ -187,6 +193,6 @@ az containerapp update -g <rg> -n <api-app> --min-replicas 1 --max-replicas 1 \
   ALLOWED_ORIGINS=https://<web-app-fqdn>
 ```
 
-The publish workflow discovers the existing preview Container Apps after OIDC login. The Azure identity needs permission to read and update those apps, and Contributor access to the shared preview resources.
+Then set the GitHub repository variables `AZURE_RESOURCE_GROUP`, `AZURE_WEB_APP`, `AZURE_API_APP`; the publish workflow deploys the commit-tagged images after the migrations. The OIDC service principal needs Contributor on the resource group.
 
 Limits: sessions and the login lockout are in memory, so the API must stay at one replica; the lockout is keyed by IP, which behind the ingress is shared (`trust proxy` is not configured). The initial password is applied only while the user has none; users change it in Settings.

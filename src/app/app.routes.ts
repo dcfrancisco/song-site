@@ -1,37 +1,47 @@
 import { Routes } from '@angular/router';
 import { requireSignIn } from './auth/require-sign-in.guard';
 
-const dashboardPages: Routes = [
+const protectedRoutes: Routes = [
   {
-    path: '',
-    pathMatch: 'full',
+    path: 'dashboard',
     loadComponent: () =>
-      import('./dashboard/dashboard.component').then(m => m.DashboardComponent)
+      import('./dashboard/dashboard-shell.component').then(m => m.DashboardShellComponent),
+    children: [
+      {
+        path: '',
+        pathMatch: 'full',
+        loadComponent: () =>
+          import('./dashboard/dashboard.component').then(m => m.DashboardComponent)
+      },
+      {
+        path: 'users',
+        loadComponent: () =>
+          import('./dashboard/admin-users.component').then(m => m.AdminUsersComponent)
+      },
+      {
+        path: 'roles',
+        loadComponent: () =>
+          import('./dashboard/admin-roles.component').then(m => m.AdminRolesComponent)
+      },
+      {
+        path: 'resources',
+        loadComponent: () =>
+          import('./other-links/other-links').then(m => m.OtherLinks)
+      },
+      {
+        path: 'settings',
+        loadComponent: () =>
+          import('./dashboard/settings.component').then(m => m.SettingsComponent)
+      },
+    ]
   },
+  { path: 'admin/users', redirectTo: 'dashboard/users', pathMatch: 'full' },
+  { path: 'admin/roles', redirectTo: 'dashboard/roles', pathMatch: 'full' },
+  { path: 'settings', redirectTo: 'dashboard/settings', pathMatch: 'full' },
   {
     path: 'home',
     loadComponent: () =>
       import('./home/home.component').then(m => m.HomeComponent)
-  },
-  {
-    path: 'users',
-    loadComponent: () =>
-      import('./dashboard/admin-users.component').then(m => m.AdminUsersComponent)
-  },
-  {
-    path: 'roles',
-    loadComponent: () =>
-      import('./dashboard/admin-roles.component').then(m => m.AdminRolesComponent)
-  },
-  {
-    path: 'resources',
-    loadComponent: () =>
-      import('./other-links/other-links').then(m => m.OtherLinks)
-  },
-  {
-    path: 'settings',
-    loadComponent: () =>
-      import('./dashboard/settings.component').then(m => m.SettingsComponent)
   },
   {
     path: 'atcp-song',
@@ -69,6 +79,16 @@ const dashboardPages: Routes = [
       import('./song-bench/song-bench').then(m => m.SongBench)
   },
   {
+    path: 'other-links',
+    loadComponent: () =>
+      import('./other-links/other-links').then(m => m.OtherLinks)
+  },
+  {
+    path: 'journey',
+    redirectTo: 'my-journey',
+    pathMatch: 'full'
+  },
+  {
     path: 'my-journey',
     loadComponent: () =>
       import('./song-bench/my-journey/my-journey.component').then(m => m.MyJourneyComponent)
@@ -79,14 +99,29 @@ const dashboardPages: Routes = [
       import('./song-bench/training-tracker/training-tracker').then(m => m.TrainingTracker)
   },
   {
+    path: 'cv',
+    redirectTo: 'my-cv',
+    pathMatch: 'full'
+  },
+  {
     path: 'my-cv',
     loadComponent: () =>
       import('./song-bench/my-journey/task/my-cv/my-cv').then(m => m.MyCv)
   },
   {
+    path: 'skills-matrix',
+    redirectTo: 'my-skills-matrix',
+    pathMatch: 'full'
+  },
+  {
     path: 'my-skills-matrix',
     loadComponent: () =>
       import('./song-bench/my-journey/task/my-skills-matrix/my-skills-matrix').then(m => m.MySkillsMatrix)
+  },
+  {
+    path: 'mycompetency',
+    redirectTo: 'my-mycompetency',
+    pathMatch: 'full'
   },
   {
     path: 'my-mycompetency',
@@ -102,6 +137,21 @@ const dashboardPages: Routes = [
     path: 'my-workday',
     loadComponent: () =>
       import('./song-bench/my-journey/task/my-workday/my-workday').then(m => m.MyWorkday)
+  },
+  {
+    path: 'workday',
+    redirectTo: 'my-workday',
+    pathMatch: 'full'
+  },
+  {
+    path: 'navbar',
+    loadComponent: () =>
+      import('./navbar/navbar').then(m => m.Navbar)
+  },
+  {
+    path: 'footer',
+    loadComponent: () =>
+      import('./footer/footer').then(m => m.Footer)
   },
   {
     path: 'my-asset-tracker',
@@ -138,52 +188,6 @@ const dashboardPages: Routes = [
     loadComponent: () =>
       import('./atcp-song-links/atcp-song-links').then(m => m.AtcpSongLinks)
   }
-];
-
-const legacyRedirects: Routes = [
-  { path: 'admin/users', redirectTo: 'dashboard/users', pathMatch: 'full' },
-  { path: 'admin/roles', redirectTo: 'dashboard/roles', pathMatch: 'full' },
-  { path: 'settings', redirectTo: 'dashboard/settings', pathMatch: 'full' },
-  { path: 'home', redirectTo: 'dashboard/home', pathMatch: 'full' },
-  { path: 'atcp-song', redirectTo: 'dashboard/atcp-song', pathMatch: 'full' },
-  { path: 'atcp-song2', redirectTo: 'dashboard/atcp-song2', pathMatch: 'full' },
-  { path: 'song3', redirectTo: 'dashboard/song3', pathMatch: 'full' },
-  { path: 'contactus', redirectTo: 'dashboard/contactus', pathMatch: 'full' },
-  { path: 'aboutus', redirectTo: 'dashboard/aboutus', pathMatch: 'full' },
-  { path: 'announcement', redirectTo: 'dashboard/announcement', pathMatch: 'full' },
-  { path: 'song-bench', redirectTo: 'dashboard/song-bench', pathMatch: 'full' },
-  { path: 'other-links', redirectTo: 'dashboard/resources', pathMatch: 'full' },
-  { path: 'journey', redirectTo: 'dashboard/my-journey', pathMatch: 'full' },
-  { path: 'my-journey', redirectTo: 'dashboard/my-journey', pathMatch: 'full' },
-  { path: 'training-tracker', redirectTo: 'dashboard/training-tracker', pathMatch: 'full' },
-  { path: 'cv', redirectTo: 'dashboard/my-cv', pathMatch: 'full' },
-  { path: 'my-cv', redirectTo: 'dashboard/my-cv', pathMatch: 'full' },
-  { path: 'skills-matrix', redirectTo: 'dashboard/my-skills-matrix', pathMatch: 'full' },
-  { path: 'my-skills-matrix', redirectTo: 'dashboard/my-skills-matrix', pathMatch: 'full' },
-  { path: 'mycompetency', redirectTo: 'dashboard/my-mycompetency', pathMatch: 'full' },
-  { path: 'my-mycompetency', redirectTo: 'dashboard/my-mycompetency', pathMatch: 'full' },
-  { path: 'my-myriro', redirectTo: 'dashboard/my-myriro', pathMatch: 'full' },
-  { path: 'my-workday', redirectTo: 'dashboard/my-workday', pathMatch: 'full' },
-  { path: 'workday', redirectTo: 'dashboard/my-workday', pathMatch: 'full' },
-  { path: 'my-asset-tracker', redirectTo: 'dashboard/my-asset-tracker', pathMatch: 'full' },
-  { path: 'my-update-contact', redirectTo: 'dashboard/my-update-contact', pathMatch: 'full' },
-  { path: 'people-lead', redirectTo: 'dashboard/people-lead', pathMatch: 'full' },
-  { path: 'my-compliance', redirectTo: 'dashboard/my-compliance', pathMatch: 'full' },
-  { path: 'wd-update-contact', redirectTo: 'dashboard/wd-update-contact', pathMatch: 'full' },
-  { path: 'my-learning-platform', redirectTo: 'dashboard/my-learning-platform', pathMatch: 'full' },
-  { path: 'atcp-song-links', redirectTo: 'dashboard/atcp-song-links', pathMatch: 'full' },
-  { path: 'navbar', redirectTo: 'dashboard', pathMatch: 'full' },
-  { path: 'footer', redirectTo: 'dashboard', pathMatch: 'full' }
-];
-
-const protectedRoutes: Routes = [
-  {
-    path: 'dashboard',
-    loadComponent: () =>
-      import('./dashboard/dashboard-shell.component').then(m => m.DashboardShellComponent),
-    children: dashboardPages
-  },
-  ...legacyRedirects
 ];
 
 export const routes: Routes = [

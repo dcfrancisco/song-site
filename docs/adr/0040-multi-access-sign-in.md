@@ -58,7 +58,6 @@ Costs and risks:
 - Development fixtures never enter a production identity store.
 - The browser cannot choose a role, permission, identity, or data scope.
 - An email address configured for a local development fixture is display/configuration data only and must never be committed.
-- Local email/password accounts must not share a default password. Initial passwords are private per-developer secrets and are applied only once to an existing account with no password.
 - Sign out must invalidate the active local or provider session and prevent reuse of the previous authenticated session.
 - Session-status and local bootstrap endpoints must not expose protected portal data.
 

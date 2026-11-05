@@ -83,18 +83,6 @@ Start the backend and frontend, then open `http://localhost:4200/`. The local de
 
 Open `http://localhost:4200/announcement` to test the editing flow. Development authentication is rejected in production and is restricted to loopback requests.
 
-### Optional local email/password sign-in
-
-For email/password testing, use `AUTH_MODE=local` only with a developer-owned local database. Set `DEFAULT_ADMIN_EMAIL` to an existing local administrator account and `DEFAULT_ADMIN_PASSWORD` to a private password of at least 12 characters in your ignored `.env`. The password is hashed and applied only if that account does not already have a password; it does not create accounts or reset existing passwords.
-
-Do not use a shared default password or a shared development database account. Each developer should use private credentials; on a shared database, provision a separate account for each developer. To generate a password locally:
-
-```powershell
-node -e "console.log(require('crypto').randomBytes(24).toString('base64url'))"
-```
-
-For local authoring without email/password credentials, use the loopback-only Development Mode fixtures described above.
-
 ## Optional development environments
 
 The repository supports multiple local profiles:

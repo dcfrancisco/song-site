@@ -51,12 +51,6 @@ The existing GitHub Pages workflow may remain during transition, but it must not
 
 This ADR is documentation only. No GitHub Actions workflow, Azure federated credential, Container Registry, Container Apps resource, database migration command, secret, or production deployment is added by this decision.
 
-## 2026-11-04 shared development-preview amendment
-
-The shared preview uses one repository-level deployment configuration and one Azure target. The workflow builds the Angular frontend and Express API from the same commit and deploys them as separate runtime services; it does not maintain a second frontend implementation or a separate `DEV_*` configuration layer. This preview decision does not authorize production deployment or settle production hosting and promotion controls.
-
-The workflow resolves the existing shared-preview frontend by its approved hostname and its API by the established name across subscriptions visible to the Azure OIDC identity. It must verify exactly one matching pair and that both apps share a resource group before running migrations or deploying. It must fail explicitly if Azure read permissions or target discovery is unavailable; it must not create replacement apps or guess a resource group.
-
 ## Completion criteria
 
 - Pull-request verification and protected staging/production environments are defined.
